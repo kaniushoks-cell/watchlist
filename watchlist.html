@@ -107,7 +107,10 @@ thead th .info-icon{width:13px;height:13px;border-radius:50%;background:var(--su
 /* signal */
 .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:10px;font-weight:600;font-family:var(--font-mono);white-space:nowrap}
 .p-buy{background:var(--buy-bg);color:var(--buy);border:1px solid rgba(79,217,170,.3)}
+.p-confirmed{background:rgba(79,217,170,.25);color:var(--buy);border:2px solid rgba(79,217,170,.7);font-size:11px}
 .p-sell{background:var(--sell-bg);color:var(--sell);border:1px solid rgba(249,124,124,.3)}
+.p-trendblock{background:rgba(249,124,124,.2);color:var(--sell);border:1px solid rgba(249,124,124,.5)}
+.p-fundblock{background:rgba(240,165,80,.2);color:var(--watch);border:1px solid rgba(240,165,80,.5)}
 .p-watch{background:var(--watch-bg);color:var(--watch);border:1px solid rgba(240,165,80,.3)}
 .p-hold{background:rgba(107,107,136,.1);color:var(--muted);border:1px solid rgba(107,107,136,.2)}
 
@@ -403,7 +406,7 @@ const COLUMNS = [
     key:'signal', label:'Signal', sub:'recommendation',
     tip:{
       title:'Trading Signal',
-      body:'The overall recommendation based on all indicators combined:\n\n▲ BUY — Stock dropped 9%+ below weighted average. Strong entry point.\n\n▼ SELL — You\'re up 8%+ (take profit) OR down 12%+ (cut loss to protect capital).\n\n◉ WATCH — Price is down 5–9%, approaching buy zone. Stay alert.\n\n— HOLD — Price is normal. No action needed.',
+      body:'The final signal after running all 3 layers:\n\n★ CONFIRMED BUY — passed all 3 layers: technical dip + uptrend + healthy fundamentals. Highest conviction.\n\n▲ BUY — technical dip detected (legacy, before trend/fundamentals loaded).\n\n↓ TREND BLOCK — price dipped but 1yr AND 2yr trends are both falling. Do NOT buy — the "average" itself is declining. This is structural weakness, not a temporary dip.\n\n⚠ FUND. RISK — price dipped but fundamentals are failing (debt, PE, margins). Wait for the company to fix itself first.\n\n◉ WATCH — price down 5–9%, approaching buy zone. Stay alert.\n\n▼ SELL — you\'re up 8%+ (take profit) or down 12%+ (stop loss).\n\n— HOLD — price is normal, no action needed.',
       colors:[
         {color:'var(--buy)', label:'▲ BUY — entry point reached'},
         {color:'var(--watch)', label:'◉ WATCH — approaching trigger'},
@@ -578,21 +581,19 @@ async function fetchFinnhub(ticker) {
 
 const DEFAULT_STOCKS = [
   {ticker:'JNJ', name:'Johnson & Johnson'},
-  {ticker:'PG',  name:'Procter & Gamble'},
   {ticker:'KO',  name:'Coca-Cola'},
-  {ticker:'CLX', name:'Clorox'},
   {ticker:'DUK', name:'Duke Energy'},
   {ticker:'SO',  name:'Southern Company'},
   {ticker:'NEE', name:'NextEra Energy'},
   {ticker:'MCK', name:'McKesson'},
   {ticker:'MCD', name:'McDonald\'s'},
   {ticker:'ABBV',name:'AbbVie'},
-  {ticker:'ABT', name:'Abbott Laboratories'},
   {ticker:'SYY', name:'Sysco'},
   {ticker:'MDT', name:'Medtronic'},
-  {ticker:'GIS', name:'General Mills'},
   {ticker:'ED',  name:'Consolidated Edison'},
   {ticker:'XEL', name:'Xcel Energy'},
+  {ticker:'BDX', name:'Becton Dickinson'},
+  {ticker:'ITW', name:'Illinois Tool Works'},
 ];
 
 let stocks = [];
@@ -767,7 +768,12 @@ async function fetchAnalyst(stock) {
     if (de != null) stock.debtEquity = de;
     if (m.netProfitMarginAnnual != null) stock.profitMargin              = m.netProfitMarginAnnual;
     if (m.currentRatioAnnual    != null) stock.currentRatio              = m.currentRatioAnnual;
-    if (m.targetPrice           != null) stock.analystTarget             = m.targetPrice;
+    if (m.targetPrice != null) stock.analystTarget = m.targetPrice;
+    // If targetPrice not in metric, try dedicated endpoint
+    if (!stock.analystTarget) {
+      const pt = await fetchFinnhubTarget(stock.ticker);
+      if (pt) stock.analystTarget = pt;
+    }
     return;
   }
   // Fallback: Yahoo proxy
@@ -852,20 +858,50 @@ function getFundamentalHealth(s) {
   return 'ok';
 }
 
-function getSignal(s) {
-  if(!s.livePrice)return'hold';
-  const baseline=s.ewa||s.customBaseline;
-  if(!baseline)return'hold';
-  const chg=(s.livePrice-baseline)/baseline*100;
-  if(s.cost&&s.livePrice){
-    const g=(s.livePrice-s.cost)/s.cost*100;
-    if(g>=8)return'sell';
-    if(g<=-12)return'sell';
+// Layer 1: Technical — price vs weighted average
+function getTechnicalSignal(s) {
+  if(!s.livePrice) return 'hold';
+  const baseline = s.ewa || s.customBaseline;
+  if(!baseline) return 'hold';
+  const chg = (s.livePrice - baseline) / baseline * 100;
+  if(s.cost && s.livePrice) {
+    const g = (s.livePrice - s.cost) / s.cost * 100;
+    if(g >= 8) return 'sell';
+    if(g <= -12) return 'sell';
   }
-  if(chg<=-9)return'buy';
-  if(chg>=6&&s.cost)return'sell';
-  if(chg<=-5)return'watch';
-  return'hold';
+  if(chg <= -9) return 'buy';
+  if(chg >= 6 && s.cost) return 'sell';
+  if(chg <= -5) return 'watch';
+  return 'hold';
+}
+
+// Layer 2: Trend — 1yr and 2yr must not both be down
+function getTrendOk(s) {
+  if(!s.trend1yr && !s.trend2yr) return true; // not loaded yet, don't block
+  if(s.trend1yr === 'down' && s.trend2yr === 'down') return false; // both down = blocked
+  return true;
+}
+
+// Layer 3: Fundamentals — no failing metrics
+function getFundamentalsOk(s) {
+  const health = getFundamentalHealth(s);
+  if(health === 'fail') return false;
+  return true;
+}
+
+// Combined 3-layer final signal
+function getSignal(s) {
+  const tech = getTechnicalSignal(s);
+  if(tech === 'sell') return 'sell';
+  if(tech === 'hold') return 'hold';
+  if(tech === 'watch') {
+    if(!getTrendOk(s)) return 'trendblock';
+    return 'watch';
+  }
+  // tech === 'buy' — run all three layers
+  if(!getTrendOk(s)) return 'trendblock';
+  if(!getFundamentalsOk(s)) return 'fundblock';
+  return 'confirmed'; // passed all 3 layers
 }
 
 function getBuyScore(s) {
@@ -922,9 +958,12 @@ function render() {
     dotsHtml+='</div>';
 
     const pills={
+      confirmed:`<span class="pill p-confirmed">★ CONFIRMED BUY</span>`,
       buy:`<span class="pill p-buy">▲ BUY</span>`,
       sell:`<span class="pill p-sell">▼ SELL</span>`,
       watch:`<span class="pill p-watch">◉ WATCH</span>`,
+      trendblock:`<span class="pill p-trendblock">↓ TREND BLOCK</span>`,
+      fundblock:`<span class="pill p-fundblock">⚠ FUND. RISK</span>`,
       hold:`<span class="pill p-hold">— HOLD</span>`
     };
 
@@ -1009,7 +1048,7 @@ function updateSummary(){
   let tv=0,tc=0,hasp=false,buys=0,sells=0;
   stocks.forEach(s=>{
     const sig=getSignal(s);
-    if(sig==='buy')buys++;if(sig==='sell')sells++;
+    if(sig==='confirmed'||sig==='buy')buys++;if(sig==='sell')sells++;
     if(s.cost&&s.qty&&s.livePrice){tv+=s.livePrice*s.qty;tc+=s.cost*s.qty;hasp=true;}
   });
   const pnl=tv-tc;
@@ -1039,8 +1078,13 @@ function updateAI(){
       const warnList=flags.filter(f=>f.status==='warn').map(f=>`${f.metric} (${f.value})`).join(', ');
       lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">⚠ Fundamentals stretched:</span> ${warnList}. Monitor closely.`);
     }
-    if(sig==='buy'){
-      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--buy);font-weight:600">▲ BUY SIGNAL.</span> Down ${chg}% from weighted average. Score: ${score}/5.${s.rsi&&s.rsi<35?' RSI '+s.rsi.toFixed(0)+' confirms oversold.':''}${s.analystTarget?' Analyst target $'+s.analystTarget.toFixed(0)+'.':''} ${s.cost?'You hold a position.':'No position — consider entering.'}${health==='fail'?' ⚠ But check fundamentals first!':''}`);
+    if(sig==='confirmed'){
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--buy);font-weight:600">★ CONFIRMED BUY — all 3 layers passed.</span> Down ${chg}% from weighted average, uptrending, fundamentals healthy. Score: ${score}/5.${s.rsi&&s.rsi<35?' RSI '+s.rsi.toFixed(0)+' confirms oversold.':''}${s.analystTarget?' Analyst target $'+s.analystTarget.toFixed(0)+'.':''} ${s.cost?'You already hold a position.':'No position yet — highest conviction entry signal.'}`);
+    } else if(sig==='trendblock'){
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">↓ TREND BLOCK.</span> Price dipped ${chg}% but both 1yr and 2yr trends are falling. Do NOT buy — this is not a temporary dip, the stock is in structural decline. Consider removing it from your watchlist.`);
+    } else if(sig==='fundblock'){
+      const failList=flags.filter(f=>f.status==='fail').map(f=>f.metric).join(', ');
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">⚠ FUND. RISK.</span> Price dipped ${chg}% but fundamentals are failing (${failList}). Wait for the company to fix its balance sheet before buying this dip.`);
     } else if(sig==='sell'){
       const gp=s.cost?((s.livePrice-s.cost)/s.cost*100).toFixed(1):null;
       lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">▼ SELL SIGNAL.</span>${gp!=null?' You are '+(gp>=0?'up':'down')+' '+Math.abs(gp)+'% on this position.':''} Consider ${gp>=0?'taking profit':'limiting your loss'}.`);
@@ -1051,11 +1095,57 @@ function updateAI(){
   if(!lines.length)lines.push('All stocks are trading within normal ranges. No action needed — hold positions and wait for a dip. <span style="color:var(--muted);font-size:12px">Tip: hover over any column header ⓘ to learn what each indicator means.</span>');
   el.innerHTML=lines.join('<br><br>');
   chips.innerHTML='';
-  ['Why is this stock dipping?','Is this dip news-driven?','How to size my position?'].forEach(q=>{
-    const b=document.createElement('button');b.className='chip';b.textContent=q;
-    b.onclick=()=>alert('Ask Claude:\n"'+q+'" — about my mean reversion watchlist.');
+
+  // Build a summary of current watchlist state for context
+  const buyStocks = stocks.filter(s=>['confirmed','buy'].includes(getSignal(s))).map(s=>s.ticker).join(', ') || 'none';
+  const watchStocks = stocks.filter(s=>getSignal(s)==='watch').map(s=>s.ticker).join(', ') || 'none';
+  const topDip = stocks.filter(s=>s.livePrice&&s.ewa).sort((a,b)=>{
+    const ca=(a.livePrice-a.ewa)/a.ewa, cb=(b.livePrice-b.ewa)/b.ewa;
+    return ca-cb;
+  })[0];
+
+  const questions = [
+    {
+      label: 'Why is this stock dipping?',
+      prompt: `I'm using a mean reversion trading strategy. My watchlist currently shows these BUY signals: ${buyStocks}. These are WATCH signals: ${watchStocks}. ${topDip ? `The biggest dip right now is ${topDip.ticker} (${((topDip.livePrice-topDip.ewa)/topDip.ewa*100).toFixed(1)}% below its weighted average). ` : ''}Can you search for recent news and explain why ${topDip ? topDip.ticker : 'these stocks'} is dipping? Is it a temporary overreaction or something more serious?`
+    },
+    {
+      label: 'Is this dip news-driven?',
+      prompt: `I'm a mean reversion trader. My current BUY signals are: ${buyStocks}. My WATCH signals are: ${watchStocks}. For each of these, can you search for the latest news and tell me: (1) is the dip caused by temporary bad news like a weak earnings quarter, market overreaction, or sector rotation? Or (2) is there something fundamentally wrong with the company? I only want to buy dips that are temporary overreactions.`
+    },
+    {
+      label: 'How to size my position?',
+      prompt: `I'm a mean reversion trader with a strategy of buying dips of 10%+ on fundamentally stable stocks and selling when they recover. My current BUY signals are: ${buyStocks}. Can you explain how I should size my position for these trades? Specifically: what % of my portfolio should I put into one trade, should I buy all at once or in stages, and what's a sensible stop-loss level?`
+    }
+  ];
+
+  questions.forEach(q => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = q.label;
+    b.onclick = () => {
+      // Copy prompt to clipboard and show instructions
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(q.prompt).then(() => {
+          showToast('Question copied! Paste it into a new Claude chat.');
+        }).catch(() => {
+          showToast('Open Claude and ask: ' + q.label);
+        });
+      } else {
+        showToast('Open Claude.ai and ask: ' + q.label);
+      }
+    };
     chips.appendChild(b);
   });
+
+  // Add a direct Claude link button
+  const openBtn = document.createElement('a');
+  openBtn.href = 'https://claude.ai';
+  openBtn.target = '_blank';
+  openBtn.className = 'chip';
+  openBtn.style.cssText = 'color:var(--accent);border-color:rgba(124,106,247,.3);text-decoration:none;';
+  openBtn.textContent = '↗ Open Claude';
+  chips.appendChild(openBtn);
 }
 
 function openModal(idx){
@@ -1097,7 +1187,26 @@ async function addTicker(){
   saveStocks();render();updateSummary();updateAI();
 }
 
-async function debugFinnhub() {
+async function fetchFinnhubTarget(ticker) {
+  const key = getFinnhubKey();
+  if (!key) return null;
+  // Finnhub has a dedicated price target endpoint
+  const baseUrl = `https://finnhub.io/api/v1/stock/price-target?symbol=${ticker}&token=${key}`;
+  const urls = [
+    baseUrl,
+    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
+  ];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {method:'GET', signal:AbortSignal.timeout(8000)});
+      if (!r.ok) continue;
+      const d = await r.json();
+      if (d && d.targetMean) return d.targetMean;
+    } catch(e) { continue; }
+  }
+  return null;
+}
   const key = getFinnhubKey();
   if (!key) { alert('No Finnhub key set'); return; }
   const baseUrl = `https://finnhub.io/api/v1/stock/metric?symbol=JNJ&metric=all&token=${key}`;

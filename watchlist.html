@@ -179,10 +179,10 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
     <div class="header-actions">
       <div id="fh-key-wrap" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">
         <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap">Finnhub key:</span>
-        <input id="fh-key-input" type="password" placeholder="Paste free API key" autocomplete="off"
-          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:140px;"
+        <input id="fh-key-input" type="password" placeholder="Paste free key → get P/E, D/E, Beta" autocomplete="off"
+          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:190px;"
           oninput="saveFinnhubKey(this.value)">
-        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap" title="Get free key — takes 30 seconds">get free key ↗</a>
+        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap" title="Get free key — takes 30 seconds">get free ↗</a>
       </div>
       <button class="hbtn" onclick="exportData()">⬇ Export</button>
       <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -554,12 +554,26 @@ function getFinnhubKey() { return localStorage.getItem('finnhub_key') || ''; }
 async function fetchFinnhub(ticker) {
   const key = getFinnhubKey();
   if (!key) return null;
-  try {
-    // Finnhub has CORS enabled — no proxy needed
-    const r = await fetch(`https://finnhub.io/api/v1/stock/metric?symbol=${ticker}&metric=all&token=${key}`, {signal:AbortSignal.timeout(8000)});
-    if (!r.ok) return null;
-    return await r.json();
-  } catch(e) { return null; }
+  const baseUrl = `https://finnhub.io/api/v1/stock/metric?symbol=${ticker}&metric=all&token=${key}`;
+  // Try direct first (works when Finnhub allows it), then through proxies
+  const urls = [
+    baseUrl,
+    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
+  ];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {
+        method: 'GET',
+        signal: AbortSignal.timeout(8000)
+        // No Content-Type header — avoids CORS preflight
+      });
+      if (!r.ok) continue;
+      const d = await r.json();
+      if (d && d.metric) return d;
+    } catch(e) { continue; }
+  }
+  return null;
 }
 
 const DEFAULT_STOCKS = [
@@ -782,6 +796,7 @@ async function refreshAll() {
   btn.classList.remove('spinning');
   const errCount=stocks.filter(s=>s.error).length;
   if(errCount>0)document.getElementById('errNote').textContent=errCount+' ticker(s) unavailable. Yahoo Finance may be rate-limiting — try again in a minute.';
+  if(!getFinnhubKey()) document.getElementById('errNote').textContent = (document.getElementById('errNote').textContent ? ' | ' : '') + '⚠ P/E, D/E, Beta & Margin columns need a free Finnhub API key — paste it in the box top-right. Get one free at finnhub.io/register (30 seconds).';
   document.getElementById('last-update').textContent='Last updated: '+new Date().toLocaleTimeString();
 }
 

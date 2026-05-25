@@ -183,7 +183,6 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
           style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:190px;"
           oninput="saveFinnhubKey(this.value)">
         <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap" title="Get free key — takes 30 seconds">get free ↗</a>
-        <button onclick="debugFinnhub()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:2px 7px;border-radius:4px;font-size:9px;font-family:var(--font-mono);cursor:pointer;" title="Debug D/E field">debug</button>
       </div>
       <button class="hbtn" onclick="exportData()">⬇ Export</button>
       <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -763,10 +762,9 @@ async function fetchAnalyst(stock) {
     if (m.peTTM           != null && !stock.peRatio)  stock.peRatio      = m.peTTM;
     if (m.forwardPE       != null) stock.forwardPE   = m.forwardPE;
     if (m.beta            != null && !stock.beta) stock.beta             = m.beta;
-    // D/E — try all known Finnhub field name variants
-    // Values can be ratio (0.68) or percentage-style (68) depending on field
-    const de = m.totalDebtToEquity ?? m.longtermDebtTotalEquity ?? m.netDebtToTotalEquity ?? null;
-    if (de != null) stock.debtEquity = de > 20 ? de / 100 : de; // normalize if returned as large number
+    // D/E — exact field names confirmed from live Finnhub response
+    const de = m['totalDebt/totalEquityAnnual'] ?? m['longTermDebt/equityAnnual'] ?? m['totalDebt/totalEquityQuarterly'] ?? m['longTermDebt/equityQuarterly'] ?? null;
+    if (de != null) stock.debtEquity = de;
     if (m.netProfitMarginAnnual != null) stock.profitMargin              = m.netProfitMarginAnnual;
     if (m.currentRatioAnnual    != null) stock.currentRatio              = m.currentRatioAnnual;
     if (m.targetPrice           != null) stock.analystTarget             = m.targetPrice;

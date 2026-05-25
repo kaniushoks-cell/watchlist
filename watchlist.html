@@ -464,14 +464,14 @@ const COLUMNS = [
     }
   },
   {
-    key:'trend', label:'Trend', sub:'1yr direction',
+    key:'trend', label:'Trend', sub:'1yr / 2yr / 5yr',
     tip:{
-      title:'Price Trend (1 Year)',
-      body:'Shows whether the stock has been generally rising or falling over the past year, calculated using linear regression — a mathematical line fitted through all price data points.\n\nThis is critical for mean reversion: you only want to buy dips in UPTRENDING stocks, where the price has a stable or rising floor to return to.\n\nA downtrending stock has no reliable floor — each dip could just be the next step down.\n\nRows with a ↓ Downtrend are highlighted in red as a warning.',
+      title:'Price Trend — 1 Year / 2 Year / 5 Year',
+      body:'Shows whether the stock has been rising or falling over three different time periods, calculated using linear regression on weekly price data.\n\n• 1 year — short-term momentum. Most relevant for deciding whether to buy a dip right now.\n• 2 year — medium-term direction. Confirms the 1yr trend is not a fluke.\n• 5 year — long-term structural health. A company rising for 5 years has proven it belongs in your watchlist.\n\nFor your strategy, the ideal stock shows ↑ Uptrend on all three. A stock showing ↓ on any period is a warning. ↓ on 5yr is a serious red flag — the company may be in structural decline.',
       colors:[
-        {color:'var(--buy)', label:'↑ Uptrend — safe for mean reversion strategy'},
-        {color:'var(--watch)', label:'→ Flat — acceptable, but watch carefully'},
-        {color:'var(--sell)', label:'↓ Downtrend — WARNING: do not buy dips here'},
+        {color:'var(--buy)', label:'↑ Uptrend — rising consistently'},
+        {color:'var(--watch)', label:'→ Flat — sideways, acceptable'},
+        {color:'var(--sell)', label:'↓ Downtrend — falling, avoid buying dips'},
       ]
     }
   },
@@ -532,11 +532,13 @@ function hideTooltip() { ttEl.classList.remove('visible'); }
 
 // ---- Data & proxies ----
 const PROXIES = [
-  t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1d&range=365d')}`,
-  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1d&range=365d')}`,
-  t => `https://thingproxy.freeboard.io/fetch/https://query1.finance.yahoo.com/v8/finance/chart/${t}?interval=1d&range=365d`
+  t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1wk&range=5y')}`,
+  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1wk&range=5y')}`,
+  t => `https://thingproxy.freeboard.io/fetch/https://query1.finance.yahoo.com/v8/finance/chart/${t}?interval=1wk&range=5y`
 ];
 const ANALYST_PROXIES = [
+  t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`,
+  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`,
   t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+t+'?modules=financialData,defaultKeyStatistics,summaryDetail')}`,
   t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+t+'?modules=financialData,defaultKeyStatistics,summaryDetail')}`
 ];
@@ -567,7 +569,7 @@ function blankStock(ticker, name) {
   return {ticker, name:name||ticker, cost:null, qty:null, customBaseline:null,
           livePrice:null, ewa:null, support:null, analystTarget:null,
           rsi:null, week52Low:null, week52High:null,
-          trend1yr:null, trend3yr:null,
+          trend1yr:null, trend2yr:null, trend5yr:null,
           // fundamentals
           peRatio:null, forwardPE:null, debtEquity:null,
           beta:null, profitMargin:null, currentRatio:null,
@@ -678,8 +680,8 @@ function getTrendLabel(closes, days) {
   const slice = closes.slice(-Math.min(days, closes.length));
   const slopePct = calcTrend(slice);
   if (slopePct === null) return null;
-  // annualized: slope is per day, multiply by 252 trading days
-  const annualized = slopePct * 252;
+  // annualized: slope is per week, multiply by 52 weeks
+  const annualized = slopePct * 52;
   if (annualized > 5)  return 'up';
   if (annualized < -3) return 'down';
   return 'flat';
@@ -694,13 +696,24 @@ async function fetchPrice(stock) {
     const closes=(d.chart.result[0].indicators.quote[0].close||[]).filter(v=>v!=null&&!isNaN(v));
     stock.livePrice=meta.regularMarketPrice||closes[closes.length-1];
     stock.hist=closes;
-    stock.ewa=stock.customBaseline||calcEWA(closes);
-    stock.rsi=calcRSI(closes);
+    stock.ewa=stock.customBaseline||calcEWA(closes.slice(-52)); // last 52 weeks for EWA
+    stock.rsi=calcRSI(closes.slice(-20)); // last 20 weeks (~14 trading days equiv)
     stock.support=calcSupport(closes);
-    stock.week52Low=meta.fiftyTwoWeekLow||Math.min(...closes);
-    stock.week52High=meta.fiftyTwoWeekHigh||Math.max(...closes);
-    stock.trend1yr = getTrendLabel(closes, 252);
-    stock.trend3yr = getTrendLabel(closes, closes.length); // full 365d data, best we can get
+    stock.week52Low=meta.fiftyTwoWeekLow||Math.min(...closes.slice(-52));
+    stock.week52High=meta.fiftyTwoWeekHigh||Math.max(...closes.slice(-52));
+
+    // Trend calculations: weekly data — 1yr=52w, 2yr=104w, 5yr=all
+    stock.trend1yr = getTrendLabel(closes, 52);
+    stock.trend2yr = getTrendLabel(closes, 104);
+    stock.trend5yr = getTrendLabel(closes, closes.length);
+
+    // Fundamentals from meta — Yahoo includes these in chart API
+    if (meta.trailingPE  != null) stock.peRatio      = meta.trailingPE;
+    if (meta.forwardPE   != null) stock.forwardPE    = meta.forwardPE;
+    if (meta.beta        != null) stock.beta         = meta.beta;
+    // chartPreviousClose and other meta fields vary — we get what we can
+    // D/E and margin come from quoteSummary — keep trying that separately
+
     if(meta.longName&&stock.name===stock.ticker)stock.name=meta.longName;
     stock.loading=false;
   } catch(e) { stock.livePrice=null;stock.loading=false;stock.error=true; }
@@ -708,22 +721,36 @@ async function fetchPrice(stock) {
 
 async function fetchAnalyst(stock) {
   try {
-    const d=await fetchWithFallback(ANALYST_PROXIES,stock.ticker);
-    const res=d?.quoteSummary?.result?.[0];
+    const d = await fetchWithFallback(ANALYST_PROXIES, stock.ticker);
+    if (!d) return;
+
+    // Try v7 quote response format first
+    const q7 = d?.quoteResponse?.result?.[0];
+    if (q7) {
+      if (q7.targetMeanPrice  != null) stock.analystTarget = q7.targetMeanPrice;
+      if (q7.trailingPE       != null && !stock.peRatio)  stock.peRatio    = q7.trailingPE;
+      if (q7.forwardPE        != null) stock.forwardPE   = q7.forwardPE;
+      if (q7.debtToEquity     != null) stock.debtEquity  = q7.debtToEquity / 100;
+      if (q7.profitMargins    != null) stock.profitMargin = q7.profitMargins * 100;
+      if (q7.currentRatio     != null) stock.currentRatio = q7.currentRatio;
+      if (q7.beta             != null && !stock.beta) stock.beta = q7.beta;
+      return;
+    }
+
+    // Fallback: v10 quoteSummary format
+    const res = d?.quoteSummary?.result?.[0];
     if (!res) return;
     const fd = res.financialData || {};
     const ks = res.defaultKeyStatistics || {};
     const sd = res.summaryDetail || {};
-    if(fd?.targetMeanPrice?.raw)  stock.analystTarget  = fd.targetMeanPrice.raw;
-    if(fd?.debtToEquity?.raw!=null) stock.debtEquity   = fd.debtToEquity.raw / 100; // YF returns as 0-100 scale
-    if(fd?.profitMargins?.raw!=null) stock.profitMargin = fd.profitMargins.raw * 100;
-    if(fd?.currentRatio?.raw!=null)  stock.currentRatio = fd.currentRatio.raw;
-    if(ks?.trailingEps?.raw!=null && stock.livePrice) stock.peRatio = stock.livePrice / ks.trailingEps.raw;
-    if(ks?.forwardPE?.raw!=null)   stock.forwardPE    = ks.forwardPE.raw;
-    if(ks?.beta?.raw!=null)        stock.beta         = ks.beta.raw;
-    if(sd?.trailingPE?.raw!=null && !stock.peRatio) stock.peRatio = sd.trailingPE.raw;
-    if(sd?.beta?.raw!=null && !stock.beta) stock.beta = sd.beta.raw;
-  } catch(e){}
+    if (fd?.targetMeanPrice?.raw  != null) stock.analystTarget = fd.targetMeanPrice.raw;
+    if (fd?.debtToEquity?.raw     != null) stock.debtEquity    = fd.debtToEquity.raw / 100;
+    if (fd?.profitMargins?.raw    != null) stock.profitMargin  = fd.profitMargins.raw * 100;
+    if (fd?.currentRatio?.raw     != null) stock.currentRatio  = fd.currentRatio.raw;
+    if (ks?.forwardPE?.raw        != null) stock.forwardPE     = ks.forwardPE.raw;
+    if (ks?.beta?.raw             != null && !stock.beta) stock.beta = ks.beta.raw;
+    if (sd?.trailingPE?.raw       != null && !stock.peRatio) stock.peRatio = sd.trailingPE.raw;
+  } catch(e) {}
 }
 
 async function refreshAll() {
@@ -892,12 +919,21 @@ function render() {
       else healthCell = `<span class="cell-bad">✕ ${failFlags.join(', ')}</span>`;
     }
 
-    const isDowntrend = s.trend1yr === 'down';
-    const trendCell = !s.livePrice ? '<span style="color:var(--muted)">—</span>' :
-      s.trend1yr === 'up'   ? '<span class="cell-good">↑ Uptrend</span>' :
-      s.trend1yr === 'down' ? '<span class="cell-bad">↓ Downtrend</span>' :
-      s.trend1yr === 'flat' ? '<span class="cell-warn">→ Flat</span>' :
-      '<span style="color:var(--muted)">—</span>';
+    const trendIcon = t => !t ? '—' :
+      t==='up'   ? '<span style="color:var(--buy)">↑</span>' :
+      t==='down' ? '<span style="color:var(--sell)">↓</span>' :
+                   '<span style="color:var(--watch)">→</span>';
+    const trendLabel = t => !t ? '' :
+      t==='up' ? 'color:var(--buy)' : t==='down' ? 'color:var(--sell)' : 'color:var(--watch)';
+
+    const trendCell = !s.livePrice ? '<span style="color:var(--muted)">—</span>' : `
+      <div style="display:flex;flex-direction:column;gap:2px;font-family:var(--font-mono);font-size:10px;line-height:1.4">
+        <span style="${trendLabel(s.trend1yr)}">${trendIcon(s.trend1yr)} 1yr</span>
+        <span style="${trendLabel(s.trend2yr)}">${trendIcon(s.trend2yr)} 2yr</span>
+        <span style="${trendLabel(s.trend5yr)}">${trendIcon(s.trend5yr)} 5yr</span>
+      </div>`;
+
+    const isDowntrend = s.trend1yr === 'down' || s.trend5yr === 'down';
 
     const isFailing = health === 'fail';
     const tr=document.createElement('tr');

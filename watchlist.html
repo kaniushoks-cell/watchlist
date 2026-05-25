@@ -1207,31 +1207,6 @@ async function fetchFinnhubTarget(ticker) {
   }
   return null;
 }
-  const key = getFinnhubKey();
-  if (!key) { alert('No Finnhub key set'); return; }
-  const baseUrl = `https://finnhub.io/api/v1/stock/metric?symbol=JNJ&metric=all&token=${key}`;
-  const urls = [
-    baseUrl,
-    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
-  ];
-  for (const url of urls) {
-    try {
-      const r = await fetch(url, {method:'GET', signal:AbortSignal.timeout(8000)});
-      if (!r.ok) continue;
-      const d = await r.json();
-      if (d && d.metric) {
-        // Show all debt-related fields
-        const m = d.metric;
-        const debtFields = Object.keys(m).filter(k => k.toLowerCase().includes('debt') || k.toLowerCase().includes('equity') || k.toLowerCase().includes('leverage'));
-        const out = debtFields.map(k => `${k}: ${m[k]}`).join('\n');
-        alert('DEBT/EQUITY FIELDS FROM FINNHUB:\n\n' + (out || 'NONE FOUND') + '\n\nAll metric keys:\n' + Object.keys(m).join(', '));
-        return;
-      }
-    } catch(e) { continue; }
-  }
-  alert('Could not reach Finnhub API');
-}
 
 function saveFinnhubKey(val) {
   if (val) localStorage.setItem('finnhub_key', val);

@@ -762,9 +762,10 @@ async function fetchAnalyst(stock) {
     if (m.peTTM           != null && !stock.peRatio)  stock.peRatio      = m.peTTM;
     if (m.forwardPE       != null) stock.forwardPE   = m.forwardPE;
     if (m.beta            != null && !stock.beta) stock.beta             = m.beta;
-    if (m.totalDebt__totalEquityAnnual != null) stock.debtEquity = m.totalDebt__totalEquityAnnual / 100;
-    else if (m.totalDebtToEquity       != null) stock.debtEquity = m.totalDebtToEquity;
-    else if (m.netDebtToTotalEquity    != null) stock.debtEquity = m.netDebtToTotalEquity / 100;
+    // D/E — try all known Finnhub field name variants
+    // Values can be ratio (0.68) or percentage-style (68) depending on field
+    const de = m.totalDebtToEquity ?? m.longtermDebtTotalEquity ?? m.netDebtToTotalEquity ?? null;
+    if (de != null) stock.debtEquity = de > 20 ? de / 100 : de; // normalize if returned as large number
     if (m.netProfitMarginAnnual != null) stock.profitMargin              = m.netProfitMarginAnnual;
     if (m.currentRatioAnnual    != null) stock.currentRatio              = m.currentRatioAnnual;
     if (m.targetPrice           != null) stock.analystTarget             = m.targetPrice;

@@ -168,6 +168,7 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
     <b>Mean Reversion Watchlist.</b> Data saves automatically in this browser.
     To sync to another computer: <b>Export</b> → save file → <b>Import</b> on other device.
     Hover over any column header <b>ⓘ</b> to learn what it means.
+    <br>To unlock P/E, D/E, Beta and Margin data: paste your free <b>Finnhub API key</b> above — get one free in 30 seconds at <a href="https://finnhub.io/register" target="_blank" style="color:var(--accent)">finnhub.io/register</a>. Key saves automatically in your browser.
   </div>
 
   <div class="header">
@@ -176,6 +177,13 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
       <p id="last-update">Click "Refresh prices" to load live data</p>
     </div>
     <div class="header-actions">
+      <div id="fh-key-wrap" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">
+        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap">Finnhub key:</span>
+        <input id="fh-key-input" type="password" placeholder="Paste free API key" autocomplete="off"
+          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:140px;"
+          oninput="saveFinnhubKey(this.value)">
+        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap" title="Get free key — takes 30 seconds">get free key ↗</a>
+      </div>
       <button class="hbtn" onclick="exportData()">⬇ Export</button>
       <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
       <button class="hbtn primary" id="refreshBtn" onclick="refreshAll()"><span class="spin">↻</span> Refresh prices</button>
@@ -538,10 +546,21 @@ const PROXIES = [
 ];
 const ANALYST_PROXIES = [
   t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`,
-  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`,
-  t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+t+'?modules=financialData,defaultKeyStatistics,summaryDetail')}`,
-  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+t+'?modules=financialData,defaultKeyStatistics,summaryDetail')}`
+  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`
 ];
+
+function getFinnhubKey() { return localStorage.getItem('finnhub_key') || ''; }
+
+async function fetchFinnhub(ticker) {
+  const key = getFinnhubKey();
+  if (!key) return null;
+  try {
+    // Finnhub has CORS enabled — no proxy needed
+    const r = await fetch(`https://finnhub.io/api/v1/stock/metric?symbol=${ticker}&metric=all&token=${key}`, {signal:AbortSignal.timeout(8000)});
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(e) { return null; }
+}
 
 const DEFAULT_STOCKS = [
   {ticker:'JNJ', name:'Johnson & Johnson'},
@@ -720,36 +739,35 @@ async function fetchPrice(stock) {
 }
 
 async function fetchAnalyst(stock) {
+  // Try Finnhub first (most reliable, no CORS issues)
+  const fh = await fetchFinnhub(stock.ticker);
+  if (fh && fh.metric) {
+    const m = fh.metric;
+    if (m.peAnnual        != null && !stock.peRatio)  stock.peRatio      = m.peAnnual;
+    if (m.peNormalizedAnnual != null && !stock.peRatio) stock.peRatio    = m.peNormalizedAnnual;
+    if (m.peTTM           != null && !stock.peRatio)  stock.peRatio      = m.peTTM;
+    if (m.forwardPE       != null) stock.forwardPE   = m.forwardPE;
+    if (m.beta            != null && !stock.beta) stock.beta             = m.beta;
+    if (m.totalDebt__totalEquityAnnual != null) stock.debtEquity         = m.totalDebt__totalEquityAnnual / 100;
+    if (m.netProfitMarginAnnual != null) stock.profitMargin              = m.netProfitMarginAnnual;
+    if (m.currentRatioAnnual    != null) stock.currentRatio              = m.currentRatioAnnual;
+    if (m.targetPrice           != null) stock.analystTarget             = m.targetPrice;
+    return;
+  }
+  // Fallback: Yahoo proxy
   try {
     const d = await fetchWithFallback(ANALYST_PROXIES, stock.ticker);
     if (!d) return;
-
-    // Try v7 quote response format first
     const q7 = d?.quoteResponse?.result?.[0];
     if (q7) {
-      if (q7.targetMeanPrice  != null) stock.analystTarget = q7.targetMeanPrice;
-      if (q7.trailingPE       != null && !stock.peRatio)  stock.peRatio    = q7.trailingPE;
-      if (q7.forwardPE        != null) stock.forwardPE   = q7.forwardPE;
-      if (q7.debtToEquity     != null) stock.debtEquity  = q7.debtToEquity / 100;
-      if (q7.profitMargins    != null) stock.profitMargin = q7.profitMargins * 100;
-      if (q7.currentRatio     != null) stock.currentRatio = q7.currentRatio;
-      if (q7.beta             != null && !stock.beta) stock.beta = q7.beta;
-      return;
+      if (q7.targetMeanPrice != null) stock.analystTarget = q7.targetMeanPrice;
+      if (q7.trailingPE      != null && !stock.peRatio) stock.peRatio   = q7.trailingPE;
+      if (q7.forwardPE       != null) stock.forwardPE  = q7.forwardPE;
+      if (q7.debtToEquity    != null) stock.debtEquity = q7.debtToEquity / 100;
+      if (q7.profitMargins   != null) stock.profitMargin = q7.profitMargins * 100;
+      if (q7.currentRatio    != null) stock.currentRatio = q7.currentRatio;
+      if (q7.beta            != null && !stock.beta) stock.beta = q7.beta;
     }
-
-    // Fallback: v10 quoteSummary format
-    const res = d?.quoteSummary?.result?.[0];
-    if (!res) return;
-    const fd = res.financialData || {};
-    const ks = res.defaultKeyStatistics || {};
-    const sd = res.summaryDetail || {};
-    if (fd?.targetMeanPrice?.raw  != null) stock.analystTarget = fd.targetMeanPrice.raw;
-    if (fd?.debtToEquity?.raw     != null) stock.debtEquity    = fd.debtToEquity.raw / 100;
-    if (fd?.profitMargins?.raw    != null) stock.profitMargin  = fd.profitMargins.raw * 100;
-    if (fd?.currentRatio?.raw     != null) stock.currentRatio  = fd.currentRatio.raw;
-    if (ks?.forwardPE?.raw        != null) stock.forwardPE     = ks.forwardPE.raw;
-    if (ks?.beta?.raw             != null && !stock.beta) stock.beta = ks.beta.raw;
-    if (sd?.trailingPE?.raw       != null && !stock.peRatio) stock.peRatio = sd.trailingPE.raw;
   } catch(e) {}
 }
 
@@ -1062,12 +1080,19 @@ async function addTicker(){
   saveStocks();render();updateSummary();updateAI();
 }
 
+function saveFinnhubKey(val) {
+  if (val) localStorage.setItem('finnhub_key', val);
+  else localStorage.removeItem('finnhub_key');
+}
+
 function closeBanner(){document.getElementById('banner').style.display='none';localStorage.setItem(BANNER_KEY,'1');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
 buildThead();
 loadStocks();
 if(localStorage.getItem(BANNER_KEY))document.getElementById('banner').style.display='none';
+const savedKey = getFinnhubKey();
+if (savedKey) document.getElementById('fh-key-input').value = savedKey;
 render();updateSummary();
 </script>
 </body>

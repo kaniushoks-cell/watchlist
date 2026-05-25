@@ -762,7 +762,9 @@ async function fetchAnalyst(stock) {
     if (m.peTTM           != null && !stock.peRatio)  stock.peRatio      = m.peTTM;
     if (m.forwardPE       != null) stock.forwardPE   = m.forwardPE;
     if (m.beta            != null && !stock.beta) stock.beta             = m.beta;
-    if (m.totalDebt__totalEquityAnnual != null) stock.debtEquity         = m.totalDebt__totalEquityAnnual / 100;
+    if (m.totalDebt__totalEquityAnnual != null) stock.debtEquity = m.totalDebt__totalEquityAnnual / 100;
+    else if (m.totalDebtToEquity       != null) stock.debtEquity = m.totalDebtToEquity;
+    else if (m.netDebtToTotalEquity    != null) stock.debtEquity = m.netDebtToTotalEquity / 100;
     if (m.netProfitMarginAnnual != null) stock.profitMargin              = m.netProfitMarginAnnual;
     if (m.currentRatioAnnual    != null) stock.currentRatio              = m.currentRatioAnnual;
     if (m.targetPrice           != null) stock.analystTarget             = m.targetPrice;

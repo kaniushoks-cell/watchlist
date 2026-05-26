@@ -185,7 +185,8 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
         <input id="fh-key-input" type="password" placeholder="Paste free key → get P/E, D/E, Beta" autocomplete="off"
           style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:190px;"
           oninput="saveFinnhubKey(this.value)">
-        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap" title="Get free key — takes 30 seconds">get free ↗</a>
+        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap">get free ↗</a>
+        <button onclick="debugAnalyst()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:2px 7px;border-radius:4px;font-size:9px;font-family:var(--font-mono);cursor:pointer;">test analyst</button>
       </div>
       <button class="hbtn" onclick="exportData()">⬇ Export</button>
       <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -201,9 +202,15 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
   </div>
 
   <div class="ai-panel">
-    <div class="ai-head"><div class="ai-dot"></div><h2>AI Analyst — live recommendations</h2></div>
-    <div class="ai-body" id="aiMsg">Refresh prices to get your personalized analysis.</div>
-    <div class="ai-chips" id="aiChips"></div>
+    <div class="ai-head" onclick="toggleAI()" style="cursor:pointer;user-select:none">
+      <div class="ai-dot"></div>
+      <h2>AI Analyst — live recommendations</h2>
+      <span id="ai-toggle" style="margin-left:auto;font-size:16px;color:var(--muted);font-weight:300;line-height:1">−</span>
+    </div>
+    <div id="ai-collapsible">
+      <div class="ai-body" id="aiMsg">Refresh prices to get your personalized analysis.</div>
+      <div class="ai-chips" id="aiChips"></div>
+    </div>
   </div>
 
   <div class="legend">
@@ -1207,6 +1214,30 @@ async function addTicker(){
   saveStocks();render();
   await fetchPrice(s);await fetchAnalyst(s);
   saveStocks();render();updateSummary();updateAI();
+}
+
+async function debugAnalyst() {
+  const urls = [
+    `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/JNJ?modules=financialData')}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/JNJ?modules=financialData')}`
+  ];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
+      const text = await r.text();
+      alert('Yahoo financialData for JNJ:\n\n' + text.substring(0, 600));
+      return;
+    } catch(e) { continue; }
+  }
+  alert('All requests failed');
+}
+
+function toggleAI() {
+  const body = document.getElementById('ai-collapsible');
+  const btn = document.getElementById('ai-toggle');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '+' : '−';
 }
 
 function saveFinnhubKey(val) {

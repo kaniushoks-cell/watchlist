@@ -311,6 +311,11 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
       <input type="number" id="inp-qty" placeholder="e.g. 10" step="1" min="0">
     </div>
     <div class="field">
+      <label>Date Purchased</label>
+      <input type="date" id="inp-date" placeholder="When did you buy?">
+      <div class="hint">Used to calculate days held</div>
+    </div>
+    <div class="field">
       <label>Stop Loss % (how much loss you can tolerate)</label>
       <input type="number" id="inp-stop" placeholder="e.g. 8 (means sell if down 8%)" step="1" min="1" max="30">
       <div class="hint">Default is 10% if left blank</div>
@@ -386,27 +391,44 @@ const SELL_COLS = [
   {key:'ticker', label:'Ticker', sub:'', tip:{title:'Ticker', body:'Stock symbol.', colors:[]}},
   {key:'name', label:'Company', sub:'', tip:{title:'Company', body:'Company name.', colors:[]}},
   {key:'price', label:'Live Price', sub:'current', tip:{title:'Live Price', body:'Current market price.', colors:[]}},
-  {key:'cost', label:'Your Cost', sub:'per share', tip:{title:'Your Purchase Price', body:'Price you paid per share when you bought.', colors:[]}},
-  {key:'pnl', label:'P&L ($)', sub:'dollar profit', tip:{title:'Dollar P&L', body:'(Live Price − Cost) × Shares. Your total dollar gain or loss.',
-    colors:[{color:'var(--buy)',label:'Green: profit'},{color:'var(--sell)',label:'Red: loss'}]}},
-  {key:'pnlpct', label:'P&L (%)', sub:'% return', tip:{title:'% Return', body:'(Live Price − Cost) / Cost × 100.',
-    colors:[{color:'var(--buy)',label:'Green: positive'},{color:'var(--sell)',label:'Red: negative'}]}},
-  {key:'progress', label:'Profit Target', sub:'exit tiers',
-    tip:{title:'Profit Target Progress', body:'Visual progress bar showing how close you are to each exit tier:\n\n7% — start watching, good profit\n10% — strong sell signal, take profit\n15%+ — maximum zone, sell immediately\n\nAlso shows when price has returned to EWA (mission accomplished).',
-      colors:[{color:'var(--buy)',label:'Green fill: approaching target'},{color:'var(--watch)',label:'Yellow: in watch zone'},{color:'var(--sell)',label:'Red: stop loss territory'}]}},
-  {key:'toewa', label:'To EWA', sub:'recovery',
-    tip:{title:'Distance Back to EWA', body:'How far the current price is from the weighted average baseline. When this reaches 0% the stock has fully recovered to its normal price — your mean reversion is complete and it\'s time to sell.',
-      colors:[{color:'var(--buy)',label:'Green: almost back to normal'},{color:'var(--watch)',label:'Yellow: halfway there'},{color:'var(--sell)',label:'Red: far from recovery'}]}},
+  {key:'cost', label:'Cost / Invested', sub:'per share + total',
+    tip:{title:'Your Cost & Total Invested', body:'Top: price you paid per share × shares owned.\nBottom: total capital deployed into this position.',colors:[]}},
+  {key:'pnl', label:'P&L ($)', sub:'total profit',
+    tip:{title:'Total Dollar P&L', body:'(Live Price − Your Cost) × Shares. Total dollar gain or loss on this position.',
+      colors:[{color:'var(--buy)',label:'Green: profit'},{color:'var(--sell)',label:'Red: loss'}]}},
+  {key:'days', label:'Days Held', sub:'since purchase',
+    tip:{title:'Days Held', body:'How many days you\'ve held this position. Useful for spotting stuck positions — if you\'ve held 60+ days for a small gain, capital might work better elsewhere.',
+      colors:[{color:'var(--buy)',label:'Green: <30 days — fresh position'},{color:'var(--watch)',label:'Yellow: 30–60 days'},{color:'var(--sell)',label:'Red: >60 days — review if still worth holding'}]}},
+  {key:'progress', label:'Profit Tiers', sub:'7% / 10% / 15%',
+    tip:{title:'Profit Target Progress', body:'Progress bar toward your exit tiers:\n7% — good profit, start watching\n10% — strong sell signal\n15%+ — sell immediately\n\nAlso triggers when price returns to EWA baseline.',
+      colors:[{color:'var(--buy)',label:'Green: building profit'},{color:'var(--watch)',label:'Yellow: at 7% zone'},{color:'var(--sell)',label:'Red: at 10%+ — sell now'}]}},
+  {key:'toewa', label:'To EWA', sub:'recovery %+$',
+    tip:{title:'Distance Back to EWA Baseline', body:'How far current price is from the weighted average "normal" price.\n\nWhen this reaches 0% the mean reversion is complete — mission accomplished, time to sell.',
+      colors:[{color:'var(--buy)',label:'Green: ≤5% from EWA — nearly recovered'},{color:'var(--watch)',label:'Yellow: 5–15% away'},{color:'var(--sell)',label:'Red: >15% — still far from recovery'}]}},
+  {key:'support', label:'Support', sub:'floor level',
+    tip:{title:'Support Level', body:'The price floor the stock historically bounces from.\n\nIf price is near support while you hold = likely to bounce, consider holding.\nIf price breaks BELOW support = strong exit signal.',
+      colors:[{color:'var(--buy)',label:'Green: price near or above support'},{color:'var(--sell)',label:'Red: price below support — exit signal'}]}},
+  {key:'rsi', label:'RSI', sub:'momentum',
+    tip:{title:'RSI While Holding', body:'RSI above 70 while you\'re in profit = stock is overbought = sell into strength before it corrects.\nRSI below 40 = oversold = might bounce, consider holding a bit longer.',
+      colors:[{color:'var(--sell)',label:'RSI >70: overbought — good time to exit'},{color:'var(--watch)',label:'RSI 50–70: neutral'},{color:'var(--buy)',label:'RSI <40: oversold — may bounce, hold'}]}},
+  {key:'target', label:'Analyst Target', sub:'consensus',
+    tip:{title:'Analyst Price Target', body:'If current price is approaching or above analyst target, upside is limited — consider exiting.',colors:[]}},
+  {key:'upside', label:'Upside Left', sub:'to target',
+    tip:{title:'Remaining Upside to Analyst Target', body:'% gap between current price and analyst consensus target.\n\nIf upside left is small (under 5%) there is little reason to hold — analysts see limited further growth.',
+      colors:[{color:'var(--buy)',label:'Green: >10% upside left — room to grow'},{color:'var(--watch)',label:'Yellow: 5–10%'},{color:'var(--sell)',label:'Red: <5% — limited upside, consider selling'}]}},
+  {key:'sellscore', label:'Sell Score', sub:'exit signals',
+    tip:{title:'Sell Score (0–5)', body:'How many sell indicators are aligning at once:\n① P&L ≥ 7%\n② Price returned to EWA\n③ RSI > 65 (overbought)\n④ Price ≥ analyst target\n⑤ Near 52-week high\n\n4–5 dots = strong sell signal. 1–2 = be patient.',
+      colors:[{color:'var(--sell)',label:'Red: 4–5 signals — strong sell'},{color:'var(--watch)',label:'Yellow: 2–3 signals'},{color:'var(--buy)',label:'Green: 0–1 — hold position'}]}},
   {key:'stoploss', label:'Stop Loss', sub:'downside risk',
-    tip:{title:'Stop Loss Progress', body:'Shows how close you are to your personal stop loss threshold (set when you entered the position, default 10%).\n\nIf the stock drops to your stop loss level, cut the loss immediately to protect your capital.',
-      colors:[{color:'var(--buy)',label:'Green: far from stop loss'},{color:'var(--watch)',label:'Yellow: getting close'},{color:'var(--sell)',label:'Red: at or past stop loss'}]}},
-  {key:'fundchange', label:'Fund. Alert', sub:'health change',
-    tip:{title:'Fundamental Change Alert', body:'Flags if the company\'s fundamentals have deteriorated since you bought. A failing fundamental is a reason to EXIT even if the price hasn\'t triggered a sell signal yet.\n\nBad fundamentals after entry = the story has changed.',
-      colors:[{color:'var(--buy)',label:'✓ Healthy — fundamentals intact'},{color:'var(--watch)',label:'⚠ Stretched — monitor closely'},{color:'var(--sell)',label:'✕ Failing — consider exiting'}]}},
-  {key:'sellsig', label:'Exit Signal', sub:'recommendation',
-    tip:{title:'Exit Signal', body:'Your personalized sell recommendation:\n\n🔴 SELL NOW — at or past 10% profit OR stop loss hit\n💰 TAKE PROFIT — 7–10% profit, good time to sell\n◉ WATCH EXIT — approaching target\n⚠ FUND. EXIT — fundamentals failing, consider exit\n🛑 STOP LOSS — loss threshold reached, cut now\n— HOLD — stay in position',
-      colors:[{color:'var(--buy)',label:'💰 TAKE PROFIT — good exit window'},{color:'var(--watch)',label:'◉ WATCH EXIT — monitor closely'},{color:'var(--sell)',label:'🔴 SELL NOW / 🛑 STOP LOSS'}]}},
-  {key:'edit', label:'', sub:'', tip:{title:'Edit', body:'Click ✎ to update your position details.', colors:[]}}
+    tip:{title:'Stop Loss Progress', body:'Visual bar showing how much of your loss tolerance has been used up.\n\nWhen bar is full = stop loss hit = cut the position immediately.',
+      colors:[{color:'var(--buy)',label:'Green: far from stop loss'},{color:'var(--watch)',label:'Yellow: getting close'},{color:'var(--sell)',label:'Red: at or past threshold'}]}},
+  {key:'fundchange', label:'Fund. Alert', sub:'health',
+    tip:{title:'Fundamental Health Alert', body:'Flags if company fundamentals have deteriorated since you bought.\n\nBad fundamentals = the story changed = exit even without a price trigger.',
+      colors:[{color:'var(--buy)',label:'✓ Healthy'},{color:'var(--watch)',label:'⚠ Stretched'},{color:'var(--sell)',label:'✕ Failing — consider exit'}]}},
+  {key:'exitsig', label:'Exit Signal', sub:'recommendation',
+    tip:{title:'Exit Signal', body:'🔴 SELL NOW — 10%+ profit or stop loss hit\n💰 TAKE PROFIT — 7–10% profit zone\n◉ WATCH EXIT — approaching target\n🛑 STOP LOSS — loss threshold reached\n⚠ FUND. EXIT — fundamentals failing\n— HOLD — stay in position',
+      colors:[{color:'var(--buy)',label:'💰 TAKE PROFIT'},{color:'var(--watch)',label:'◉ WATCH EXIT'},{color:'var(--sell)',label:'🔴 SELL NOW / 🛑 STOP LOSS'}]}},
+  {key:'edit', label:'', sub:'', tip:{title:'Edit', body:'Click ✎ to update your position.', colors:[]}}
 ];
 
 // ── Proxies ─────────────────────────────────────────────────────────
@@ -433,7 +455,7 @@ const DEFAULT_STOCKS = [
 let stocks=[], editIdx=null;
 
 function blankStock(ticker,name){
-  return {ticker,name:name||ticker,cost:null,qty:null,stopLossPct:10,customBaseline:null,
+  return {ticker,name:name||ticker,cost:null,qty:null,stopLossPct:10,customBaseline:null,buyDate:null,
     livePrice:null,ewa:null,support:null,analystTarget:null,rsi:null,
     week52Low:null,week52High:null,trend1yr:null,trend2yr:null,trend5yr:null,
     peRatio:null,forwardPE:null,debtEquity:null,beta:null,profitMargin:null,currentRatio:null,
@@ -448,15 +470,15 @@ function saveFmpKey(v){v?localStorage.setItem('fmp_key',v):localStorage.removeIt
 function loadStocks(){
   try{
     const saved=localStorage.getItem(STORAGE_KEY);
-    if(saved) stocks=JSON.parse(saved).map(s=>({...blankStock(s.ticker,s.name),cost:s.cost||null,qty:s.qty||null,stopLossPct:s.stopLossPct||10,customBaseline:s.customBaseline||null}));
+    if(saved) stocks=JSON.parse(saved).map(s=>({...blankStock(s.ticker,s.name),cost:s.cost||null,qty:s.qty||null,stopLossPct:s.stopLossPct||10,customBaseline:s.customBaseline||null,buyDate:s.buyDate||null}));
     else stocks=DEFAULT_STOCKS.map(s=>blankStock(s.ticker,s.name));
   }catch(e){stocks=DEFAULT_STOCKS.map(s=>blankStock(s.ticker,s.name));}
 }
 function saveStocks(){
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,stopLossPct:s.stopLossPct||10,customBaseline:s.customBaseline}))));
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,stopLossPct:s.stopLossPct||10,customBaseline:s.customBaseline,buyDate:s.buyDate}))));
 }
 function exportData(){
-  const blob=new Blob([JSON.stringify(stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,stopLossPct:s.stopLossPct,customBaseline:s.customBaseline})),null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify(stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,stopLossPct:s.stopLossPct,customBaseline:s.customBaseline,buyDate:s.buyDate})),null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='watchlist-portfolio.json';a.click();
   showToast('Portfolio exported!');
 }
@@ -468,8 +490,8 @@ function importData(event){
       const parsed=JSON.parse(e.target.result);
       parsed.forEach(item=>{
         const ex=stocks.find(s=>s.ticker===item.ticker);
-        if(ex){ex.cost=item.cost;ex.qty=item.qty;ex.stopLossPct=item.stopLossPct||10;ex.customBaseline=item.customBaseline;}
-        else stocks.push({...blankStock(item.ticker,item.name),cost:item.cost||null,qty:item.qty||null,stopLossPct:item.stopLossPct||10,customBaseline:item.customBaseline||null});
+        if(ex){ex.cost=item.cost;ex.qty=item.qty;ex.stopLossPct=item.stopLossPct||10;ex.customBaseline=item.customBaseline;ex.buyDate=item.buyDate||null;}
+        else stocks.push({...blankStock(item.ticker,item.name),cost:item.cost||null,qty:item.qty||null,stopLossPct:item.stopLossPct||10,customBaseline:item.customBaseline||null,buyDate:item.buyDate||null});
       });
       saveStocks();render();updateSummary();updateAI();showToast('Portfolio imported!');
     }catch(err){showToast('Import failed');}
@@ -680,6 +702,19 @@ function getExitSignal(s){
   if(pnlPct>=4)return'watchexit';
   return'hold';
 }
+function getSellScore(s){
+  if(!s.livePrice||!s.cost)return 0;
+  let score=0;
+  const pnlPct=(s.livePrice-s.cost)/s.cost*100;
+  if(pnlPct>=7)score++;
+  const baseline=s.ewa||s.customBaseline;
+  if(baseline&&s.livePrice>=baseline*0.98)score++;
+  if(s.rsi!=null&&s.rsi>65)score++;
+  if(s.analystTarget&&s.livePrice>=s.analystTarget*0.98)score++;
+  if(s.week52High&&(s.week52High-s.livePrice)/s.week52High*100<5)score++;
+  return score;
+}
+
 function getBuyScore(s){
   if(!s.livePrice)return 0;let score=0;
   const b=s.ewa;
@@ -831,71 +866,117 @@ function renderSellTable(){
   const tbody=document.getElementById('sell-tbody');tbody.innerHTML='';
   const owned=stocks.filter(s=>s.cost&&s.qty&&s.livePrice);
   if(!owned.length){
-    tbody.innerHTML=`<tr><td colspan="12"><div class="empty-sell"><span>💼</span>No positions yet. Buy a stock and click ✎ to log your purchase price and shares.</div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="17"><div class="empty-sell"><span>💼</span>No positions yet. Buy a stock and click ✎ to log your purchase price and shares.</div></td></tr>`;
     return;
   }
+
+  let totalInvested=0,totalValue=0;
+  owned.forEach(s=>{totalInvested+=s.cost*s.qty;totalValue+=s.livePrice*s.qty;});
+
   owned.forEach(s=>{
     const i=stocks.indexOf(s);
     const pnl=(s.livePrice-s.cost)*s.qty;
     const pnlPct=(s.livePrice-s.cost)/s.cost*100;
-    const stopLoss=-(s.stopLossPct||10);
+    const totalInv=s.cost*s.qty;
+    const stopLossPct=s.stopLossPct||10;
     const baseline=s.ewa||s.customBaseline;
-    const toEwa=baseline?(s.livePrice-baseline)/baseline*100:null;
+    const toEwaPct=baseline?(s.livePrice-baseline)/baseline*100:null;
     const exitSig=getExitSignal(s);
+    const sellScore=getSellScore(s);
     const health=getFundamentalHealth(s);
     const flags=getFundamentalFlags(s);
 
-    // Profit progress bar (0 to 15%)
+    // Days held
+    let daysCell='<span style="color:var(--muted)">—</span>';
+    if(s.buyDate){
+      const days=Math.floor((new Date()-new Date(s.buyDate))/(1000*60*60*24));
+      const dClass=days<30?'cell-good':days<60?'cell-warn':'cell-bad';
+      daysCell=`<span class="${dClass}">${days}d</span>`;
+    }
+
+    // Cost + total invested
+    const costCell=`<span class="cell-neutral" style="font-family:var(--font-mono);font-size:12px">$${fmt(s.cost)}</span><br><span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">×${s.qty} = $${Math.round(totalInv).toLocaleString()}</span>`;
+
+    // P&L
+    const pnlClass=pnl>=0?'pos':'neg';
+    const pnlCell=`<span class="${pnlClass}" style="font-family:var(--font-mono);font-size:12px;font-weight:600">${fmtC(pnl)}</span><br><span class="${pnlClass}" style="font-size:10px;font-family:var(--font-mono)">${pnlPct>=0?'+':''}${fmt(pnlPct,1)}%</span>`;
+
+    // Profit bar
     const profitCap=15;
-    const profitPct=Math.min(Math.max(pnlPct,0),profitCap);
-    const profitWidth=(profitPct/profitCap*100).toFixed(1);
-    const barColor=pnlPct>=10?'var(--sell)':pnlPct>=7?'var(--watch)':pnlPct>=4?'var(--buy)':'var(--muted)';
+    const profitWidth=Math.min(Math.max(pnlPct,0),profitCap)/profitCap*100;
+    const barColor=pnlPct>=10?'var(--sell)':pnlPct>=7?'var(--watch)':'var(--buy)';
     const profitCell=`
       <div class="profit-bar-wrap">
-        <div class="profit-label ${pnlPct>=10?'neg':pnlPct>=7?'warn':pnlPct>=0?'pos':'neg'}">${pnlPct>=0?'+':''}${fmt(pnlPct,1)}%</div>
-        <div class="profit-bar-track"><div class="profit-bar-fill" style="width:${profitWidth}%;background:${barColor}"></div></div>
+        <div class="profit-bar-track"><div class="profit-bar-fill" style="width:${profitWidth.toFixed(1)}%;background:${barColor}"></div></div>
         <div class="profit-tiers"><span>0</span><span style="${pnlPct>=7?'color:var(--watch)':''}">7%</span><span style="${pnlPct>=10?'color:var(--sell)':''}">10%</span><span style="${pnlPct>=15?'color:var(--sell)':''}">15%</span></div>
       </div>`;
 
-    // To EWA cell
-    const toEwaCell=toEwa==null?'<span style="color:var(--muted)">—</span>':
-      toEwa>=0?`<span class="cell-good">✓ Returned</span>`:
-      colorCell(Math.abs(toEwa),fmt(Math.abs(toEwa),1)+'% away',5,15);
+    // To EWA with $ and %
+    let toEwaCell='<span style="color:var(--muted)">—</span>';
+    if(toEwaPct!=null){
+      if(toEwaPct>=0) toEwaCell=`<span class="cell-good">✓ Recovered</span><br><span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">avg $${fmt(baseline)}</span>`;
+      else {
+        const cls=Math.abs(toEwaPct)<=5?'cell-good':Math.abs(toEwaPct)<=15?'cell-warn':'cell-bad';
+        toEwaCell=`<span class="${cls}">${fmt(Math.abs(toEwaPct),1)}% away</span><br><span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">avg $${fmt(baseline)}</span>`;
+      }
+    }
+
+    // Support
+    let supCell='<span style="color:var(--muted)">—</span>';
+    if(s.support){
+      const aboveSup=(s.livePrice-s.support)/s.support*100;
+      const supClass=aboveSup<0?'cell-bad':aboveSup<5?'cell-good':'cell-neutral';
+      supCell=`<span class="${supClass}">$${fmt(s.support)}</span><br><span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">${aboveSup>=0?'+':''}${fmt(aboveSup,1)}%</span>`;
+    }
+
+    // RSI — for sell table, high RSI is bad (overbought)
+    let rsiCell='<span style="color:var(--muted)">—</span>';
+    if(s.rsi!=null){
+      const cls=s.rsi>70?'cell-bad':s.rsi>50?'cell-warn':'cell-good';
+      rsiCell=`<span class="${cls}">${fmt(s.rsi,0)}</span>`;
+    }
+
+    // Analyst target & upside left
+    const targetCell=s.analystTarget?`<span class="cell-neutral">$${fmt(s.analystTarget)}</span>`:'<span style="color:var(--muted)">—</span>';
+    const upsideLeft=s.analystTarget&&s.livePrice?(s.analystTarget-s.livePrice)/s.livePrice*100:null;
+    const upsideCell=upsideLeft==null?'<span style="color:var(--muted)">—</span>':colorCell(upsideLeft,(upsideLeft>=0?'+':'')+fmt(upsideLeft,1)+'%',10,5,true);
+
+    // Sell score dots
+    const sdotColor=sellScore>=4?'on-sell':sellScore>=2?'on-warn':'on-buy';
+    let sdots='<div class="score-dots">';
+    for(let d=0;d<5;d++)sdots+=`<div class="dot ${d<sellScore?sdotColor:'off'}"></div>`;
+    sdots+='</div>';
 
     // Stop loss bar
-    const stopRange=Math.abs(stopLoss);
-    const dropFromCost=Math.max(-(pnlPct),0);
-    const stopWidth=Math.min(dropFromCost/stopRange*100,100).toFixed(1);
-    const stopColor=dropFromCost>=stopRange*0.8?'var(--sell)':dropFromCost>=stopRange*0.5?'var(--watch)':'var(--buy)';
+    const dropFromCost=Math.max(-pnlPct,0);
+    const stopWidth=Math.min(dropFromCost/stopLossPct*100,100).toFixed(1);
+    const stopColor=dropFromCost>=stopLossPct*0.8?'var(--sell)':dropFromCost>=stopLossPct*0.5?'var(--watch)':'var(--buy)';
     const stopCell=`
       <div class="stop-bar-wrap">
-        <div style="font-family:var(--font-mono);font-size:11px;color:${dropFromCost>=stopRange?'var(--sell)':dropFromCost>=stopRange*0.8?'var(--watch)':'var(--muted)'};margin-bottom:3px">${stopRange}% limit</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:${dropFromCost>=stopLossPct?'var(--sell)':dropFromCost>=stopLossPct*0.8?'var(--watch)':'var(--muted)'};margin-bottom:3px">${fmt(dropFromCost,1)}% / ${stopLossPct}%</div>
         <div class="stop-bar-track"><div class="stop-bar-fill" style="width:${stopWidth}%;background:${stopColor}"></div></div>
-        <div style="font-size:9px;color:var(--muted);font-family:var(--font-mono);margin-top:3px">${fmt(dropFromCost,1)}% used</div>
       </div>`;
 
-    // Fund change alert
+    // Fund alert
     let fundCell='<span style="color:var(--muted)">—</span>';
     if(health&&s.livePrice){
       const fail=flags.filter(f=>f.status==='fail').map(f=>f.metric);
       const warn=flags.filter(f=>f.status==='warn').map(f=>f.metric);
-      if(health==='ok')fundCell='<span class="cell-good">✓ Healthy</span>';
+      if(health==='ok')fundCell='<span class="cell-good">✓</span>';
       else if(health==='warn')fundCell=`<span class="cell-warn">⚠ ${warn.join(', ')}</span>`;
       else fundCell=`<span class="cell-bad">✕ ${fail.join(', ')}</span>`;
     }
 
-    // Exit signal pill
+    // Exit signal
     const exitPills={
       sellnow:`<span class="pill p-sell-now">🔴 SELL NOW</span>`,
       takeprofit:`<span class="pill p-take-profit">💰 TAKE PROFIT</span>`,
-      watchexit:`<span class="pill p-watch-exit">◉ WATCH EXIT</span>`,
+      watchexit:`<span class="pill p-watch-exit">◉ WATCH</span>`,
       stoploss:`<span class="pill p-stop-loss">🛑 STOP LOSS</span>`,
       fundexit:`<span class="pill p-fund-exit">⚠ FUND. EXIT</span>`,
       hold:`<span class="pill p-hold-pos">— HOLD</span>`
     };
 
-    const pnlClass=pnl>=0?'pos':'neg';
-    const pnlPctClass=pnlPct>=0?'pos':'neg';
     const tr=document.createElement('tr');
     if(exitSig==='sellnow'||exitSig==='stoploss')tr.style.cssText='border-left:3px solid var(--sell);';
     else if(exitSig==='takeprofit'||exitSig==='fundexit')tr.style.cssText='border-left:3px solid var(--watch);';
@@ -903,21 +984,37 @@ function renderSellTable(){
     tr.innerHTML=`
       <td class="td-ticker">${s.ticker}</td>
       <td class="td-name">${s.name}</td>
-      <td><span class="cell-neutral">$${fmt(s.livePrice)}</span></td>
-      <td><span class="cell-neutral">$${fmt(s.cost)}</span><br><span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">×${s.qty} shares</span></td>
-      <td><span class="${pnlClass}" style="font-family:var(--font-mono);font-size:12px;font-weight:500">${fmtC(pnl)}</span></td>
+      <td><span class="cell-neutral" style="font-family:var(--font-mono)">$${fmt(s.livePrice)}</span></td>
+      <td>${costCell}</td>
+      <td>${pnlCell}</td>
+      <td>${daysCell}</td>
       <td>${profitCell}</td>
       <td>${toEwaCell}</td>
+      <td>${supCell}</td>
+      <td>${rsiCell}</td>
+      <td>${targetCell}</td>
+      <td>${upsideCell}</td>
+      <td>${sdots}</td>
       <td>${stopCell}</td>
       <td>${fundCell}</td>
       <td>${exitPills[exitSig]||exitPills.hold}</td>
-      <td style="white-space:nowrap">
-        <button class="icon-btn edit" onclick="openModal(${i})" title="Edit">✎</button>
-      </td>`;
+      <td><button class="icon-btn edit" onclick="openModal(${i})" title="Edit">✎</button></td>`;
     tbody.appendChild(tr);
   });
-}
 
+  // Footer row — totals
+  const totalPnl=totalValue-totalInvested;
+  const totalPnlPct=(totalPnl/totalInvested*100);
+  const tfoot=document.createElement('tr');
+  tfoot.style.cssText='background:var(--surface2);border-top:2px solid var(--border);font-weight:600;';
+  tfoot.innerHTML=`
+    <td colspan="2" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:10px 11px;">TOTAL (${owned.length} positions)</td>
+    <td></td>
+    <td style="font-family:var(--font-mono);font-size:12px;color:var(--text)">$${Math.round(totalInvested).toLocaleString()} invested</td>
+    <td><span class="${totalPnl>=0?'pos':'neg'}" style="font-family:var(--font-mono);font-size:12px;font-weight:600">${fmtC(totalPnl)}<br><span style="font-size:10px">${totalPnlPct>=0?'+':''}${fmt(totalPnlPct,1)}%</span></span></td>
+    <td colspan="12"></td>`;
+  tbody.appendChild(tfoot);
+}
 function render(){renderBuyTable();renderSellTable();}
 
 function updateAlertBar(){
@@ -993,6 +1090,7 @@ function openModal(idx){
   document.getElementById('modal-sub').textContent=s.name;
   document.getElementById('inp-cost').value=s.cost||'';
   document.getElementById('inp-qty').value=s.qty||'';
+  document.getElementById('inp-date').value=s.buyDate||'';
   document.getElementById('inp-stop').value=s.stopLossPct||10;
   document.getElementById('inp-base').value=s.customBaseline||'';
   document.getElementById('modal').style.display='flex';
@@ -1004,12 +1102,18 @@ function saveModal(){
   const qty=parseFloat(document.getElementById('inp-qty').value);
   const stop=parseFloat(document.getElementById('inp-stop').value);
   const base=parseFloat(document.getElementById('inp-base').value);
+  const dateVal=document.getElementById('inp-date').value;
   const s=stocks[editIdx];
+  const hadCost=!!s.cost;
   s.cost=(!isNaN(cost)&&cost>0)?cost:null;
   s.qty=(!isNaN(qty)&&qty>0)?qty:null;
   s.stopLossPct=(!isNaN(stop)&&stop>0)?stop:10;
   s.customBaseline=(!isNaN(base)&&base>0)?base:null;
   if(s.customBaseline)s.ewa=s.customBaseline;
+  // Auto-set today's date if cost entered for first time and no date set
+  if(s.cost&&!hadCost&&!dateVal) s.buyDate=new Date().toISOString().split('T')[0];
+  else if(dateVal) s.buyDate=dateVal;
+  else if(!s.cost) s.buyDate=null;
   saveStocks();closeModal();render();updateSummary();updateAI();updateAlertBar();
   showToast('Position saved!');
 }

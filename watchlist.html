@@ -29,6 +29,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-head);min-hei
 .spin{display:inline-block}
 .spinning .spin{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.key-box{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px}
+.key-box span{font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap}
+.key-box input{background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:120px}
+.key-box a{font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap;text-decoration:none}
+
+/* alert banner */
+.alert-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.alert-pill{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;font-family:var(--font-mono)}
+.alert-buy{background:var(--buy-bg);color:var(--buy);border:1px solid rgba(79,217,170,.3)}
+.alert-sell{background:var(--sell-bg);color:var(--sell);border:1px solid rgba(249,124,124,.3)}
+.alert-watch{background:var(--watch-bg);color:var(--watch);border:1px solid rgba(240,165,80,.3)}
+.alert-none{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
 
 /* summary */
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
@@ -40,55 +52,51 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-head);min-hei
 
 /* AI panel */
 .ai-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
-.ai-head{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.ai-head{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
 .ai-head h2{font-size:13px;font-weight:600}
+.ai-toggle{margin-left:auto;font-size:16px;color:var(--muted);font-weight:300;line-height:1}
 .ai-dot{width:7px;height:7px;border-radius:50%;background:var(--buy);animation:pulse 1.8s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
 .ai-body{padding:14px 16px;font-size:13px;line-height:1.75}
 .ai-body .tk{font-family:var(--font-mono);font-weight:600;color:var(--accent);background:rgba(124,106,247,.1);padding:1px 5px;border-radius:4px}
 .ai-chips{padding:0 16px 12px;display:flex;gap:8px;flex-wrap:wrap}
-.chip{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:20px;font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all .15s}
+.chip{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:20px;font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block}
 .chip:hover{border-color:var(--accent);color:var(--accent)}
+
+/* section headers */
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;margin-top:28px}
+.section-head:first-of-type{margin-top:0}
+.section-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.section-buy .section-icon{background:var(--buy-bg);border:1px solid rgba(79,217,170,.3)}
+.section-sell .section-icon{background:var(--sell-bg);border:1px solid rgba(249,124,124,.3)}
+.section-head h2{font-size:15px;font-weight:600}
+.section-head .sdesc{font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-left:4px}
+.section-divider{flex:1;height:1px;background:var(--border)}
 
 /* legend */
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:11px;font-family:var(--font-mono)}
 .legend-item{display:flex;align-items:center;gap:6px;color:var(--muted)}
 .legend-dot{width:9px;height:9px;border-radius:50%}
 
-/* table */
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
+/* tables */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px}
+.table-wrap.buy-table{border-top:2px solid rgba(79,217,170,.4)}
+.table-wrap.sell-table{border-top:2px solid rgba(249,124,124,.4)}
 .tbl-scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:1150px}
+table{width:100%;border-collapse:collapse}
+.buy-table table{min-width:1100px}
+.sell-table table{min-width:900px}
 thead tr{border-bottom:1px solid var(--border)}
 thead th{padding:9px 11px;font-size:9px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.5px;text-transform:uppercase;text-align:left;white-space:nowrap;cursor:help;position:relative}
 thead th .th-label{display:flex;align-items:center;gap:4px}
 thead th .th-sub{font-size:8px;color:#404058;display:block;letter-spacing:0;text-transform:none;margin-top:1px;font-weight:400}
-thead th .info-icon{width:13px;height:13px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:8px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-style:normal;line-height:1}
-
-/* tooltip */
-.tooltip-box{
-  position:fixed;
-  background:#1e1e2e;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:14px 16px;
-  width:280px;
-  font-family:var(--font-head);
-  font-size:12px;
-  line-height:1.6;
-  color:var(--text);
-  z-index:9999;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity .15s;
-  box-shadow:0 8px 32px rgba(0,0,0,.6);
-}
-.tooltip-box.visible{opacity:1}
-.tooltip-box .tt-title{font-size:13px;font-weight:600;margin-bottom:6px;color:var(--accent)}
-.tooltip-box .tt-body{color:#a0a0b8;font-size:11px;line-height:1.65}
-.tooltip-box .tt-colors{margin-top:10px;display:flex;flex-direction:column;gap:4px}
-.tooltip-box .tt-color-row{display:flex;align-items:center;gap:8px;font-size:11px}
-.tooltip-box .tt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+thead th .info-icon{width:13px;height:13px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:8px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:10px 11px;font-size:12px;vertical-align:middle}
+.td-ticker{font-weight:600;font-family:var(--font-mono);color:var(--accent);white-space:nowrap}
+.td-name{color:var(--muted);font-size:11px;min-width:110px}
 
 /* cells */
 .cell-good{background:var(--buy-bg);color:var(--buy);font-family:var(--font-mono);font-size:12px;font-weight:500;border-radius:5px;padding:3px 7px;display:inline-block;white-space:nowrap}
@@ -99,39 +107,63 @@ thead th .info-icon{width:13px;height:13px;border-radius:50%;background:var(--su
 /* score dots */
 .score-dots{display:flex;gap:3px;align-items:center}
 .dot{width:8px;height:8px;border-radius:50%}
-.dot.on-buy{background:var(--buy)}
-.dot.on-sell{background:var(--sell)}
-.dot.on-warn{background:var(--watch)}
-.dot.off{background:var(--border)}
+.dot.on-buy{background:var(--buy)}.dot.on-warn{background:var(--watch)}.dot.on-sell{background:var(--sell)}.dot.off{background:var(--border)}
 
-/* signal */
+/* pills */
 .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:10px;font-weight:600;font-family:var(--font-mono);white-space:nowrap}
+.p-confirmed{background:rgba(79,217,170,.25);color:var(--buy);border:2px solid rgba(79,217,170,.7)}
 .p-buy{background:var(--buy-bg);color:var(--buy);border:1px solid rgba(79,217,170,.3)}
-.p-confirmed{background:rgba(79,217,170,.25);color:var(--buy);border:2px solid rgba(79,217,170,.7);font-size:11px}
 .p-sell{background:var(--sell-bg);color:var(--sell);border:1px solid rgba(249,124,124,.3)}
 .p-trendblock{background:rgba(249,124,124,.2);color:var(--sell);border:1px solid rgba(249,124,124,.5)}
 .p-fundblock{background:rgba(240,165,80,.2);color:var(--watch);border:1px solid rgba(240,165,80,.5)}
 .p-watch{background:var(--watch-bg);color:var(--watch);border:1px solid rgba(240,165,80,.3)}
 .p-hold{background:rgba(107,107,136,.1);color:var(--muted);border:1px solid rgba(107,107,136,.2)}
 
+/* profit progress bar */
+.profit-bar-wrap{min-width:120px}
+.profit-bar-track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:4px;position:relative}
+.profit-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.profit-tiers{display:flex;justify-content:space-between;font-size:9px;font-family:var(--font-mono);color:var(--muted)}
+.profit-label{font-family:var(--font-mono);font-size:12px;font-weight:600;margin-bottom:3px}
+
+/* stop loss bar */
+.stop-bar-wrap{min-width:100px}
+.stop-bar-track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.stop-bar-fill{height:100%;border-radius:3px;background:var(--sell)}
+
+/* sell signal pill */
+.p-sell-now{background:rgba(249,124,124,.3);color:var(--sell);border:2px solid rgba(249,124,124,.8);font-size:11px}
+.p-take-profit{background:rgba(79,217,170,.25);color:var(--buy);border:2px solid rgba(79,217,170,.6)}
+.p-watch-exit{background:var(--watch-bg);color:var(--watch);border:1px solid rgba(240,165,80,.4)}
+.p-hold-pos{background:rgba(107,107,136,.1);color:var(--muted);border:1px solid rgba(107,107,136,.2)}
+.p-stop-loss{background:rgba(249,124,124,.4);color:var(--sell);border:2px solid var(--sell)}
+.p-fund-exit{background:rgba(240,165,80,.25);color:var(--watch);border:2px solid rgba(240,165,80,.7)}
+
+/* icon btn */
 .icon-btn{background:none;border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;margin-left:3px}
 .icon-btn:hover.edit{border-color:var(--accent);color:var(--accent)}
 .icon-btn:hover.del{border-color:var(--sell);color:var(--sell)}
 .loading-txt{font-family:var(--font-mono);font-size:11px;color:var(--muted);animation:pulse 1.2s ease-in-out infinite}
 
-tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
-tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:var(--surface2)}
-td{padding:10px 11px;font-size:12px;vertical-align:middle}
-.td-ticker{font-weight:600;font-family:var(--font-mono);color:var(--accent);white-space:nowrap}
-.td-name{color:var(--muted);font-size:11px;min-width:120px}
-
+/* add row */
 .add-row{padding:10px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .add-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:7px;font-family:var(--font-mono);font-size:13px;width:100px;outline:none;transition:border .15s}
 .add-input:focus{border-color:var(--accent)}
-.btn-add{background:rgba(124,106,247,.15);border:1px solid rgba(124,106,247,.3);color:var(--accent);padding:6px 13px;border-radius:7px;font-family:var(--font-head);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
-.btn-add:hover{background:rgba(124,106,247,.25)}
+.btn-add{background:rgba(124,106,247,.15);border:1px solid rgba(124,106,247,.3);color:var(--accent);padding:6px 13px;border-radius:7px;font-family:var(--font-head);font-size:12px;font-weight:600;cursor:pointer}
 .err-note{font-size:11px;color:var(--muted);font-family:var(--font-mono);padding:7px 12px;border-top:1px solid var(--border);min-height:26px}
+
+/* empty sell state */
+.empty-sell{padding:28px;text-align:center;color:var(--muted);font-size:13px}
+.empty-sell span{display:block;font-size:22px;margin-bottom:8px}
+
+/* tooltip */
+.tooltip-box{position:fixed;background:#1e1e2e;border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:280px;font-family:var(--font-head);font-size:12px;line-height:1.6;color:var(--text);z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+.tooltip-box.visible{opacity:1}
+.tooltip-box .tt-title{font-size:13px;font-weight:600;margin-bottom:6px;color:var(--accent)}
+.tooltip-box .tt-body{color:#a0a0b8;font-size:11px;line-height:1.65}
+.tooltip-box .tt-colors{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.tooltip-box .tt-color-row{display:flex;align-items:center;gap:8px;font-size:11px}
+.tooltip-box .tt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
 /* modal */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:200}
@@ -144,10 +176,8 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
 .field input:focus{border-color:var(--accent)}
 .field .hint{font-size:10px;color:var(--muted);margin-top:3px;font-family:var(--font-mono)}
 .modal-btns{display:flex;gap:8px;margin-top:18px}
-.btn-save{flex:1;background:var(--accent);border:none;color:#fff;padding:10px;border-radius:8px;font-family:var(--font-head);font-weight:600;font-size:13px;cursor:pointer;transition:opacity .15s}
-.btn-save:hover{opacity:.85}
+.btn-save{flex:1;background:var(--accent);border:none;color:#fff;padding:10px;border-radius:8px;font-family:var(--font-head);font-weight:600;font-size:13px;cursor:pointer}
 .btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:10px 14px;border-radius:8px;font-family:var(--font-head);font-size:13px;cursor:pointer}
-.btn-cancel:hover{color:var(--text)}
 
 .toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:12px;font-family:var(--font-mono);color:var(--buy);z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
@@ -158,7 +188,6 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
 </head>
 <body>
 
-<!-- Tooltip -->
 <div class="tooltip-box" id="tooltip">
   <div class="tt-title" id="tt-title"></div>
   <div class="tt-body" id="tt-body"></div>
@@ -168,38 +197,36 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
 <div class="app">
   <div id="banner" class="banner">
     <span class="banner-close" onclick="closeBanner()">✕</span>
-    <b>Mean Reversion Watchlist.</b> Data saves automatically in this browser.
-    To sync to another computer: <b>Export</b> → save file → <b>Import</b> on other device.
-    Hover over any column header <b>ⓘ</b> to learn what it means.
-    <br>To unlock P/E, D/E, Beta and Margin data: paste your free <b>Finnhub API key</b> above — get one free in 30 seconds at <a href="https://finnhub.io/register" target="_blank" style="color:var(--accent)">finnhub.io/register</a>. Key saves automatically in your browser.
+    <b>Mean Reversion Watchlist.</b> Data auto-saves in this browser. Export/Import to sync between computers.
+    Hover column headers <b>ⓘ</b> for explanations. Two API keys needed — <b>Finnhub</b> (P/E, Beta, D/E) and <b>FMP</b> (Analyst Targets) — both free.
   </div>
 
   <div class="header">
     <div class="header-left">
       <h1>📈 Mean Reversion Watchlist</h1>
-      <p id="last-update">Click "Refresh prices" to load live data</p>
+      <p id="last-update">Click "Refresh" to load live data</p>
     </div>
     <div class="header-actions">
-      <div id="fh-key-wrap" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">
-        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap">Finnhub:</span>
-        <input id="fh-key-input" type="password" placeholder="key → P/E Beta D/E" autocomplete="off"
-          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:120px;"
-          oninput="saveFinnhubKey(this.value)">
-        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono)">get ↗</a>
+      <div class="key-box">
+        <span>Finnhub:</span>
+        <input id="fh-key-input" type="password" placeholder="key → P/E Beta D/E" autocomplete="off" oninput="saveFinnhubKey(this.value)">
+        <a href="https://finnhub.io/register" target="_blank">get ↗</a>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">
-        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap">FMP:</span>
-        <input id="fmp-key-input" type="password" placeholder="key → analyst targets" autocomplete="off"
-          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:130px;"
-          oninput="saveFmpKey(this.value)">
-        <a href="https://site.financialmodelingprep.com/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono)">get ↗</a>
+      <div class="key-box">
+        <span>FMP:</span>
+        <input id="fmp-key-input" type="password" placeholder="key → analyst targets" autocomplete="off" oninput="saveFmpKey(this.value)">
+        <a href="https://site.financialmodelingprep.com/register" target="_blank">get ↗</a>
       </div>
       <button class="hbtn" onclick="exportData()">⬇ Export</button>
       <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
-      <button class="hbtn primary" id="refreshBtn" onclick="refreshAll()"><span class="spin">↻</span> Refresh prices</button>
+      <button class="hbtn primary" id="refreshBtn" onclick="refreshAll()"><span class="spin">↻</span> Refresh</button>
     </div>
   </div>
 
+  <!-- Alert bar -->
+  <div class="alert-bar" id="alertBar"></div>
+
+  <!-- Summary -->
   <div class="summary">
     <div class="sum-card"><div class="lbl">Portfolio Value</div><div class="val neutral" id="sum-value">—</div></div>
     <div class="sum-card"><div class="lbl">Total P&L</div><div class="val neutral" id="sum-pnl">—</div></div>
@@ -207,11 +234,12 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
     <div class="sum-card"><div class="lbl">Sell Signals</div><div class="val neg" id="sum-sells">0</div></div>
   </div>
 
+  <!-- AI Panel -->
   <div class="ai-panel">
-    <div class="ai-head" onclick="toggleAI()" style="cursor:pointer;user-select:none">
+    <div class="ai-head" onclick="toggleAI()">
       <div class="ai-dot"></div>
       <h2>AI Analyst — live recommendations</h2>
-      <span id="ai-toggle" style="margin-left:auto;font-size:16px;color:var(--muted);font-weight:300;line-height:1">−</span>
+      <span class="ai-toggle" id="ai-toggle">−</span>
     </div>
     <div id="ai-collapsible">
       <div class="ai-body" id="aiMsg">Refresh prices to get your personalized analysis.</div>
@@ -219,19 +247,26 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
     </div>
   </div>
 
+  <!-- Legend -->
   <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:var(--buy)"></div>Green = Good / Bullish</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--watch)"></div>Yellow = Watch / Neutral</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--sell)"></div>Red = Caution / Bearish</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--buy)"></div>Green = Good</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--watch)"></div>Yellow = Watch</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--sell)"></div>Red = Caution</div>
   </div>
 
-  <div class="table-wrap">
+  <!-- BUY SECTION -->
+  <div class="section-head section-buy">
+    <div class="section-icon">🔍</div>
+    <h2>Entry Watchlist</h2>
+    <span class="sdesc">stocks to watch & buy</span>
+    <div class="section-divider"></div>
+  </div>
+
+  <div class="table-wrap buy-table">
     <div class="tbl-scroll">
       <table>
-        <thead>
-          <tr id="thead-row"></tr>
-        </thead>
-        <tbody id="tbody"></tbody>
+        <thead><tr id="buy-thead"></tr></thead>
+        <tbody id="buy-tbody"></tbody>
       </table>
     </div>
     <div class="add-row">
@@ -241,6 +276,24 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
     </div>
     <div class="err-note" id="errNote"></div>
   </div>
+
+  <!-- SELL SECTION -->
+  <div class="section-head section-sell">
+    <div class="section-icon">💼</div>
+    <h2>My Positions</h2>
+    <span class="sdesc">exit strategy & sell signals</span>
+    <div class="section-divider"></div>
+  </div>
+
+  <div class="table-wrap sell-table">
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr id="sell-thead"></tr></thead>
+        <tbody id="sell-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <!-- Modal -->
@@ -258,9 +311,13 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
       <input type="number" id="inp-qty" placeholder="e.g. 10" step="1" min="0">
     </div>
     <div class="field">
+      <label>Stop Loss % (how much loss you can tolerate)</label>
+      <input type="number" id="inp-stop" placeholder="e.g. 8 (means sell if down 8%)" step="1" min="1" max="30">
+      <div class="hint">Default is 10% if left blank</div>
+    </div>
+    <div class="field">
       <label>Custom Baseline Price ($) — optional</label>
-      <input type="number" id="inp-base" placeholder="Leave blank to use weighted average" step="0.01" min="0">
-      <div class="hint">Override the auto-calculated baseline</div>
+      <input type="number" id="inp-base" placeholder="Auto-calculated from weighted average" step="0.01" min="0">
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -272,812 +329,495 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY = 'mrw_v4';
-const BANNER_KEY  = 'mrw_banner_v4';
+const STORAGE_KEY = 'mrw_v5';
+const BANNER_KEY  = 'mrw_banner_v5';
 
-// Column definitions with tooltips
-const COLUMNS = [
-  {
-    key:'ticker', label:'Ticker', sub:'',
-    tip:{
-      title:'Ticker Symbol',
-      body:'The stock\'s unique market identifier. For example, JNJ = Johnson & Johnson, PG = Procter & Gamble. Used to look up the stock on any exchange.',
-      colors:[]
-    }
-  },
-  {
-    key:'name', label:'Company', sub:'',
-    tip:{title:'Company Name', body:'The full name of the publicly traded company.', colors:[]}
-  },
-  {
-    key:'price', label:'Live Price', sub:'current market',
-    tip:{
-      title:'Live Price',
-      body:'The current market price of the stock, fetched in real-time from Yahoo Finance. This is what you would pay if you bought the stock right now. Click "Refresh prices" to update.',
-      colors:[]
-    }
-  },
-  {
-    key:'ewa', label:'vs EWA', sub:'weighted 52w avg',
-    tip:{
-      title:'vs EWA — Exponentially Weighted Average',
-      body:'Shows how far the current price is from the stock\'s "normal" price over the past 52 weeks. Unlike a simple average, recent prices count MORE than older prices — so last week matters more than 6 months ago. This gives a smarter, more realistic baseline.\n\nA negative number means the stock is BELOW its normal level — a potential buying opportunity. A positive number means it\'s ABOVE normal — possibly overpriced.',
-      colors:[
-        {color:'var(--buy)', label:'Green: price is 5%+ below normal — dip territory'},
-        {color:'var(--watch)', label:'Yellow: price is near normal (−5% to +3%)'},
-        {color:'var(--sell)', label:'Red: price is above normal — not a bargain'},
-      ]
-    }
-  },
-  {
-    key:'support', label:'Support', sub:'bounce level',
-    tip:{
-      title:'Support Level',
-      body:'The price floor where this stock has historically stopped falling and bounced back up. Calculated by finding the price zone where the stock spent the most time in the bottom 40% of its yearly range.\n\nIf the stock is near its support level, buyers historically step in — making it a safer place to buy. The % shown is how far above support the stock currently is.',
-      colors:[
-        {color:'var(--buy)', label:'Green: within 5% above support — near the floor'},
-        {color:'var(--watch)', label:'Yellow: 5–15% above support'},
-        {color:'var(--sell)', label:'Red: more than 15% above support'},
-      ]
-    }
-  },
-  {
-    key:'target', label:'Analyst Target', sub:'consensus',
-    tip:{
-      title:'Analyst Consensus Price Target',
-      body:'The average price target set by professional Wall Street analysts who research this company full-time. This represents what they believe the stock is truly worth based on earnings, growth, and fundamentals.\n\nIf the current price is below this target, the stock may be undervalued. This is fetched live from Yahoo Finance.',
-      colors:[]
-    }
-  },
-  {
-    key:'upside', label:'Upside', sub:'to target',
-    tip:{
-      title:'Implied Upside to Analyst Target',
-      body:'The percentage gap between the current price and the analyst consensus target. For example, if a stock trades at $100 and analysts say it\'s worth $120, the upside is +20%.\n\nHigher upside = more room to grow if analysts are right. This is especially meaningful when combined with a dip — you\'re buying a discounted stock with strong recovery potential.',
-      colors:[
-        {color:'var(--buy)', label:'Green: 5%+ upside — analysts see significant value'},
-        {color:'var(--watch)', label:'Yellow: 0–5% upside — limited room to grow'},
-        {color:'var(--sell)', label:'Red: negative upside — stock may be overvalued'},
-      ]
-    }
-  },
-  {
-    key:'rsi', label:'RSI', sub:'14-day',
-    tip:{
-      title:'RSI — Relative Strength Index (14-day)',
-      body:'A momentum indicator from 0 to 100 that measures whether a stock is "oversold" (beaten down too much) or "overbought" (risen too fast).\n\nBelow 30 = Oversold. The market has been too harsh on this stock — historically it tends to bounce back. This is one of the strongest confirmation signals for your buy strategy.\n\nAbove 70 = Overbought. The stock has risen quickly — potential correction ahead.\n\n30–50 = Neutral zone.',
-      colors:[
-        {color:'var(--buy)', label:'Green: RSI below 30 — oversold, likely to bounce'},
-        {color:'var(--watch)', label:'Yellow: RSI 30–50 — neutral momentum'},
-        {color:'var(--sell)', label:'Red: RSI above 50 — not oversold yet'},
-      ]
-    }
-  },
-  {
-    key:'low52', label:'52w Low Dist.', sub:'distance from low',
-    tip:{
-      title:'Distance from 52-Week Low',
-      body:'How far the current price is above the lowest price the stock has traded at over the past 52 weeks (one year).\n\nWhen a stock is close to its yearly low, it is near maximum pessimism — which often represents a buying opportunity for fundamentally strong companies.\n\nA small % here means the stock is near its yearly floor.',
-      colors:[
-        {color:'var(--buy)', label:'Green: within 10% of yearly low — near the floor'},
-        {color:'var(--watch)', label:'Yellow: 10–25% above yearly low'},
-        {color:'var(--sell)', label:'Red: more than 25% above yearly low'},
-      ]
-    }
-  },
-  {
-    key:'score', label:'Score', sub:'buy signals',
-    tip:{
-      title:'Buy Score — Confluence of Signals (0–5)',
-      body:'The number of buy indicators that are all aligning at the same time. Each dot represents one signal:\n\n① Price is 5%+ below weighted average\n② RSI below 40 (momentum oversold)\n③ Price near support level\n④ Price below analyst target\n⑤ Price within 10% of 52-week low\n\nThe more dots lit up = the stronger the buying opportunity. 4–5 green dots is a rare, high-conviction signal. 1–2 dots = interesting but wait.',
-      colors:[
-        {color:'var(--buy)', label:'Green dots: 4–5 signals aligned — strong buy'},
-        {color:'var(--watch)', label:'Yellow dots: 2–3 signals aligned — watch closely'},
-        {color:'var(--sell)', label:'Red dots: 0–1 signals — not a buy yet'},
-      ]
-    }
-  },
-  {
-    key:'cost', label:'Your Cost', sub:'per share',
-    tip:{
-      title:'Your Purchase Price',
-      body:'The price per share you paid when you bought this stock. Click the ✎ edit button to enter this. Once set, the app calculates your exact profit or loss in real time.',
-      colors:[]
-    }
-  },
-  {
-    key:'qty', label:'Shares', sub:'quantity owned',
-    tip:{
-      title:'Number of Shares You Own',
-      body:'How many shares of this stock you currently hold. Enter this via the ✎ edit button. Combined with your cost and the live price, this gives your total dollar P&L.',
-      colors:[]
-    }
-  },
-  {
-    key:'pnl', label:'P&L ($)', sub:'dollar profit/loss',
-    tip:{
-      title:'Profit & Loss in Dollars',
-      body:'Your total dollar gain or loss on this position so far. Calculated as: (Live Price − Your Cost) × Number of Shares.\n\nExample: You bought 10 shares at $160. Stock is now $175. P&L = ($175 − $160) × 10 = +$150.',
-      colors:[
-        {color:'var(--buy)', label:'Green: you are in profit'},
-        {color:'var(--sell)', label:'Red: you are at a loss'},
-      ]
-    }
-  },
-  {
-    key:'pnlpct', label:'P&L (%)', sub:'percentage return',
-    tip:{
-      title:'Profit & Loss as a Percentage',
-      body:'Your return on this stock as a percentage of what you paid. Calculated as: (Live Price − Your Cost) / Your Cost × 100.\n\nThis tells you the efficiency of your investment regardless of position size.',
-      colors:[
-        {color:'var(--buy)', label:'Green: positive return'},
-        {color:'var(--sell)', label:'Red: negative return'},
-      ]
-    }
-  },
-  {
-    key:'signal', label:'Signal', sub:'recommendation',
-    tip:{
-      title:'Trading Signal',
-      body:'The final signal after running all 3 layers:\n\n★ CONFIRMED BUY — passed all 3 layers: technical dip + uptrend + healthy fundamentals. Highest conviction.\n\n▲ BUY — technical dip detected (legacy, before trend/fundamentals loaded).\n\n↓ TREND BLOCK — price dipped but 1yr AND 2yr trends are both falling. Do NOT buy — the "average" itself is declining. This is structural weakness, not a temporary dip.\n\n⚠ FUND. RISK — price dipped but fundamentals are failing (debt, PE, margins). Wait for the company to fix itself first.\n\n◉ WATCH — price down 5–9%, approaching buy zone. Stay alert.\n\n▼ SELL — you\'re up 8%+ (take profit) or down 12%+ (stop loss).\n\n— HOLD — price is normal, no action needed.',
-      colors:[
-        {color:'var(--buy)', label:'▲ BUY — entry point reached'},
-        {color:'var(--watch)', label:'◉ WATCH — approaching trigger'},
-        {color:'var(--sell)', label:'▼ SELL — exit position'},
-      ]
-    }
-  },
-  {
-    key:'pe', label:'P/E', sub:'price/earnings',
-    tip:{
-      title:'P/E Ratio — Price to Earnings',
-      body:'How much you pay per $1 of company profit. Shows "forward P/E" (based on next year\'s expected earnings) when available, otherwise trailing.\n\nThis is the main valuation check — our strategy requires stocks that aren\'t overpriced, so we only want companies with reasonable P/E ratios.\n\nUpdates every quarter when companies report earnings.',
-      colors:[
-        {color:'var(--buy)', label:'Green: P/E ≤ 20 — fairly priced'},
-        {color:'var(--watch)', label:'Yellow: P/E 20–28 — getting expensive'},
-        {color:'var(--sell)', label:'Red: P/E > 28 — overpriced vs earnings'},
-      ]
-    }
-  },
-  {
-    key:'de', label:'D/E', sub:'debt/equity',
-    tip:{
-      title:'Debt/Equity Ratio',
-      body:'How much debt the company carries relative to what it owns. A ratio of 1.0 means equal debt and equity. Higher = more leverage = more risk.\n\nOur strategy requires financially solid companies. If a stock dips and the company has too much debt, it may not recover — it could spiral into real trouble.\n\nNote: utility stocks (NEE, DUK, SO, ED, XEL) get more slack here — they structurally carry higher debt to fund infrastructure. Updates quarterly.',
-      colors:[
-        {color:'var(--buy)', label:'Green: D/E under limit — solid balance sheet'},
-        {color:'var(--watch)', label:'Yellow: elevated but manageable'},
-        {color:'var(--sell)', label:'Red: dangerously high debt — red flag'},
-      ]
-    }
-  },
-  {
-    key:'betacol', label:'Beta', sub:'volatility',
-    tip:{
-      title:'Beta — Stock Volatility vs Market',
-      body:'Measures how much this stock moves relative to the overall market. Beta of 1.0 = moves exactly with the market. Beta of 0.4 = moves 40% as much.\n\nFor your strategy you want LOW beta stocks — they move slowly and predictably, so a 10% dip stands out as unusual and is more likely to recover cleanly.\n\nThis updates periodically as market conditions change.',
-      colors:[
-        {color:'var(--buy)', label:'Green: Beta ≤ 0.5 — very stable, ideal'},
-        {color:'var(--watch)', label:'Yellow: Beta 0.5–0.8 — moderate'},
-        {color:'var(--sell)', label:'Red: Beta > 0.8 — too volatile for strategy'},
-      ]
-    }
-  },
-  {
-    key:'margin', label:'Margin', sub:'profit %',
-    tip:{
-      title:'Net Profit Margin',
-      body:'The percentage of revenue that becomes actual profit. If a company makes $100M in sales and $15M in profit, margin = 15%.\n\nThis confirms the company is genuinely profitable — not just surviving on borrowed money. A falling margin quarter over quarter can be an early warning sign. Updates every quarter.',
-      colors:[
-        {color:'var(--buy)', label:'Green: margin ≥ 8% — healthy and profitable'},
-        {color:'var(--watch)', label:'Yellow: margin 0–8% — thin but positive'},
-        {color:'var(--sell)', label:'Red: negative margin — losing money'},
-      ]
-    }
-  },
-  {
-    key:'health', label:'Health', sub:'fundamentals',
-    tip:{
-      title:'Overall Fundamental Health Score',
-      body:'A combined flag across all 4 fundamental metrics: P/E, Debt/Equity, Beta, and Profit Margin.\n\nIf ANY metric fails our criteria, this cell turns red and you\'ll see exactly which metric is the problem. This is your quarterly alert system — when a company\'s health score changes to yellow or red, re-evaluate whether it belongs in your watchlist.\n\nClick the ✎ edit button on a flagged row to review its details.',
-      colors:[
-        {color:'var(--buy)', label:'Green: all fundamentals healthy ✓'},
-        {color:'var(--watch)', label:'Yellow: one or more metrics getting stretched'},
-        {color:'var(--sell)', label:'Red: one or more metrics failing criteria — review'},
-      ]
-    }
-  },
-  {
-    key:'trend', label:'Trend', sub:'1yr / 2yr / 5yr',
-    tip:{
-      title:'Price Trend — 1 Year / 2 Year / 5 Year',
-      body:'Shows whether the stock has been rising or falling over three different time periods, calculated using linear regression on weekly price data.\n\n• 1 year — short-term momentum. Most relevant for deciding whether to buy a dip right now.\n• 2 year — medium-term direction. Confirms the 1yr trend is not a fluke.\n• 5 year — long-term structural health. A company rising for 5 years has proven it belongs in your watchlist.\n\nFor your strategy, the ideal stock shows ↑ Uptrend on all three. A stock showing ↓ on any period is a warning. ↓ on 5yr is a serious red flag — the company may be in structural decline.',
-      colors:[
-        {color:'var(--buy)', label:'↑ Uptrend — rising consistently'},
-        {color:'var(--watch)', label:'→ Flat — sideways, acceptable'},
-        {color:'var(--sell)', label:'↓ Downtrend — falling, avoid buying dips'},
-      ]
-    }
-  },
-  {key:'edit', label:'Edit', sub:'', tip:{title:'Edit Position', body:'Click ✎ to enter your purchase price and share count. Click ✕ to remove the stock from your watchlist.', colors:[]}}
+// ── Column definitions ──────────────────────────────────────────────
+const BUY_COLS = [
+  {key:'ticker', label:'Ticker', sub:'', tip:{title:'Ticker Symbol', body:'The stock\'s unique market identifier.', colors:[]}},
+  {key:'name', label:'Company', sub:'', tip:{title:'Company Name', body:'Full name of the publicly traded company.', colors:[]}},
+  {key:'price', label:'Live Price', sub:'current', tip:{title:'Live Price', body:'Current market price fetched from Yahoo Finance. Click Refresh to update.', colors:[]}},
+  {key:'ewa', label:'vs EWA', sub:'weighted avg',
+    tip:{title:'vs EWA — Exponentially Weighted Average',
+      body:'How far the current price is from its "normal" price over 52 weeks. Recent prices count more than older ones.\n\nNegative = stock is BELOW normal = potential buy.\nPositive = stock is ABOVE normal = overpriced.',
+      colors:[{color:'var(--buy)',label:'Green: 5%+ below normal — buy zone'},{color:'var(--watch)',label:'Yellow: near normal'},{color:'var(--sell)',label:'Red: above normal'}]}},
+  {key:'support', label:'Support', sub:'bounce level',
+    tip:{title:'Support Level', body:'Price floor where the stock has bounced back up multiple times. Being near support = buyers historically step in here.',
+      colors:[{color:'var(--buy)',label:'Green: within 5% of support'},{color:'var(--watch)',label:'Yellow: 5–15% above'},{color:'var(--sell)',label:'Red: far above support'}]}},
+  {key:'target', label:'Analyst Target', sub:'consensus',
+    tip:{title:'Analyst Consensus Price Target', body:'Average price target from Wall Street analysts. Below this = potentially undervalued.', colors:[]}},
+  {key:'upside', label:'Upside', sub:'to target',
+    tip:{title:'Implied Upside', body:'% gap between current price and analyst target. Higher = more room to grow.',
+      colors:[{color:'var(--buy)',label:'Green: 5%+ upside'},{color:'var(--watch)',label:'Yellow: 0–5%'},{color:'var(--sell)',label:'Red: negative'}]}},
+  {key:'rsi', label:'RSI', sub:'14-period',
+    tip:{title:'RSI — Relative Strength Index', body:'0–100 momentum indicator.\nBelow 30 = oversold, likely to bounce.\nAbove 70 = overbought.',
+      colors:[{color:'var(--buy)',label:'Green: <30 oversold'},{color:'var(--watch)',label:'Yellow: 30–50'},{color:'var(--sell)',label:'Red: >50'}]}},
+  {key:'low52', label:'52w Low', sub:'distance',
+    tip:{title:'Distance from 52-Week Low', body:'How far above the yearly floor. Close to low = near maximum pessimism = potential opportunity.',
+      colors:[{color:'var(--buy)',label:'Green: within 10% of yearly low'},{color:'var(--watch)',label:'Yellow: 10–25%'},{color:'var(--sell)',label:'Red: >25%'}]}},
+  {key:'score', label:'Score', sub:'buy signals',
+    tip:{title:'Buy Score (0–5)', body:'How many buy indicators align at once:\n① Price 5%+ below EWA\n② RSI < 40\n③ Near support\n④ Below analyst target\n⑤ Near 52w low\n\n5 dots = highest conviction buy.',
+      colors:[{color:'var(--buy)',label:'Green: 4–5 signals'},{color:'var(--watch)',label:'Yellow: 2–3'},{color:'var(--sell)',label:'Red: 0–1'}]}},
+  {key:'pe', label:'P/E', sub:'price/earnings',
+    tip:{title:'P/E Ratio', body:'How much you pay per $1 of profit. Lower = cheaper.\nUses forward P/E when available.',
+      colors:[{color:'var(--buy)',label:'Green: ≤20'},{color:'var(--watch)',label:'Yellow: 20–28'},{color:'var(--sell)',label:'Red: >28'}]}},
+  {key:'de', label:'D/E', sub:'debt/equity',
+    tip:{title:'Debt/Equity Ratio', body:'Debt vs what the company owns. Higher = more risk.\nUtilities (NEE,DUK,SO,ED,XEL) get more slack — they carry structural infrastructure debt.',
+      colors:[{color:'var(--buy)',label:'Green: within safe limit'},{color:'var(--watch)',label:'Yellow: elevated'},{color:'var(--sell)',label:'Red: dangerously high'}]}},
+  {key:'beta', label:'Beta', sub:'volatility',
+    tip:{title:'Beta — Volatility vs Market', body:'1.0 = moves with market. Lower = more stable. You want LOW beta stocks for mean reversion.',
+      colors:[{color:'var(--buy)',label:'Green: ≤0.5'},{color:'var(--watch)',label:'Yellow: 0.5–0.8'},{color:'var(--sell)',label:'Red: >0.8'}]}},
+  {key:'margin', label:'Margin', sub:'profit %',
+    tip:{title:'Net Profit Margin', body:'% of revenue that becomes profit. Confirms the company is genuinely profitable.',
+      colors:[{color:'var(--buy)',label:'Green: ≥8%'},{color:'var(--watch)',label:'Yellow: 0–8%'},{color:'var(--sell)',label:'Red: negative'}]}},
+  {key:'health', label:'Health', sub:'fundamentals',
+    tip:{title:'Fundamental Health', body:'Combined flag across P/E, D/E, Beta, Margin. Shows exactly which metric is failing.',
+      colors:[{color:'var(--buy)',label:'✓ Healthy — all metrics OK'},{color:'var(--watch)',label:'⚠ Stretched — monitor'},{color:'var(--sell)',label:'✕ Failing — review position'}]}},
+  {key:'trend', label:'Trend', sub:'1y/2y/5y',
+    tip:{title:'Price Trend 1yr / 2yr / 5yr', body:'Linear regression on weekly prices. For mean reversion you need an UPTRENDING stock — a rising floor to return to.\n\nIf 1yr AND 2yr are both falling = TREND BLOCK signal.',
+      colors:[{color:'var(--buy)',label:'↑ Uptrend — safe'},{color:'var(--watch)',label:'→ Flat'},{color:'var(--sell)',label:'↓ Downtrend — avoid'}]}},
+  {key:'signal', label:'Signal', sub:'entry',
+    tip:{title:'Entry Signal (3-layer)', body:'★ CONFIRMED BUY — passed all 3 layers: technical dip + uptrend + healthy fundamentals.\n▲ BUY — technical dip detected.\n↓ TREND BLOCK — dip exists but trend is falling.\n⚠ FUND. RISK — dip exists but fundamentals failing.\n◉ WATCH — approaching buy zone.\n— HOLD — no action needed.',
+      colors:[{color:'var(--buy)',label:'★ CONFIRMED BUY — all 3 layers passed'},{color:'var(--watch)',label:'◉ WATCH — getting close'},{color:'var(--sell)',label:'↓ TREND BLOCK / ⚠ FUND. RISK'}]}},
+  {key:'edit', label:'', sub:'', tip:{title:'Edit', body:'Click ✎ to enter your purchase price, shares, and stop loss. Click ✕ to remove.', colors:[]}}
 ];
 
-// Build thead
-function buildThead() {
-  const tr = document.getElementById('thead-row');
-  tr.innerHTML = '';
-  COLUMNS.forEach(col => {
-    const th = document.createElement('th');
-    th.innerHTML = `
-      <div class="th-label">
-        ${col.label}
-        ${col.tip.title ? '<i class="info-icon">ⓘ</i>' : ''}
-      </div>
-      ${col.sub ? `<span class="th-sub">${col.sub}</span>` : ''}
-    `;
-    if (col.tip.title) {
-      th.addEventListener('mouseenter', e => showTooltip(e, col.tip));
-      th.addEventListener('mousemove', e => moveTooltip(e));
-      th.addEventListener('mouseleave', hideTooltip);
-    }
-    tr.appendChild(th);
-  });
-}
+const SELL_COLS = [
+  {key:'ticker', label:'Ticker', sub:'', tip:{title:'Ticker', body:'Stock symbol.', colors:[]}},
+  {key:'name', label:'Company', sub:'', tip:{title:'Company', body:'Company name.', colors:[]}},
+  {key:'price', label:'Live Price', sub:'current', tip:{title:'Live Price', body:'Current market price.', colors:[]}},
+  {key:'cost', label:'Your Cost', sub:'per share', tip:{title:'Your Purchase Price', body:'Price you paid per share when you bought.', colors:[]}},
+  {key:'pnl', label:'P&L ($)', sub:'dollar profit', tip:{title:'Dollar P&L', body:'(Live Price − Cost) × Shares. Your total dollar gain or loss.',
+    colors:[{color:'var(--buy)',label:'Green: profit'},{color:'var(--sell)',label:'Red: loss'}]}},
+  {key:'pnlpct', label:'P&L (%)', sub:'% return', tip:{title:'% Return', body:'(Live Price − Cost) / Cost × 100.',
+    colors:[{color:'var(--buy)',label:'Green: positive'},{color:'var(--sell)',label:'Red: negative'}]}},
+  {key:'progress', label:'Profit Target', sub:'exit tiers',
+    tip:{title:'Profit Target Progress', body:'Visual progress bar showing how close you are to each exit tier:\n\n7% — start watching, good profit\n10% — strong sell signal, take profit\n15%+ — maximum zone, sell immediately\n\nAlso shows when price has returned to EWA (mission accomplished).',
+      colors:[{color:'var(--buy)',label:'Green fill: approaching target'},{color:'var(--watch)',label:'Yellow: in watch zone'},{color:'var(--sell)',label:'Red: stop loss territory'}]}},
+  {key:'toewa', label:'To EWA', sub:'recovery',
+    tip:{title:'Distance Back to EWA', body:'How far the current price is from the weighted average baseline. When this reaches 0% the stock has fully recovered to its normal price — your mean reversion is complete and it\'s time to sell.',
+      colors:[{color:'var(--buy)',label:'Green: almost back to normal'},{color:'var(--watch)',label:'Yellow: halfway there'},{color:'var(--sell)',label:'Red: far from recovery'}]}},
+  {key:'stoploss', label:'Stop Loss', sub:'downside risk',
+    tip:{title:'Stop Loss Progress', body:'Shows how close you are to your personal stop loss threshold (set when you entered the position, default 10%).\n\nIf the stock drops to your stop loss level, cut the loss immediately to protect your capital.',
+      colors:[{color:'var(--buy)',label:'Green: far from stop loss'},{color:'var(--watch)',label:'Yellow: getting close'},{color:'var(--sell)',label:'Red: at or past stop loss'}]}},
+  {key:'fundchange', label:'Fund. Alert', sub:'health change',
+    tip:{title:'Fundamental Change Alert', body:'Flags if the company\'s fundamentals have deteriorated since you bought. A failing fundamental is a reason to EXIT even if the price hasn\'t triggered a sell signal yet.\n\nBad fundamentals after entry = the story has changed.',
+      colors:[{color:'var(--buy)',label:'✓ Healthy — fundamentals intact'},{color:'var(--watch)',label:'⚠ Stretched — monitor closely'},{color:'var(--sell)',label:'✕ Failing — consider exiting'}]}},
+  {key:'sellsig', label:'Exit Signal', sub:'recommendation',
+    tip:{title:'Exit Signal', body:'Your personalized sell recommendation:\n\n🔴 SELL NOW — at or past 10% profit OR stop loss hit\n💰 TAKE PROFIT — 7–10% profit, good time to sell\n◉ WATCH EXIT — approaching target\n⚠ FUND. EXIT — fundamentals failing, consider exit\n🛑 STOP LOSS — loss threshold reached, cut now\n— HOLD — stay in position',
+      colors:[{color:'var(--buy)',label:'💰 TAKE PROFIT — good exit window'},{color:'var(--watch)',label:'◉ WATCH EXIT — monitor closely'},{color:'var(--sell)',label:'🔴 SELL NOW / 🛑 STOP LOSS'}]}},
+  {key:'edit', label:'', sub:'', tip:{title:'Edit', body:'Click ✎ to update your position details.', colors:[]}}
+];
 
-// Tooltip logic
-const ttEl = document.getElementById('tooltip');
-const ttTitle = document.getElementById('tt-title');
-const ttBody = document.getElementById('tt-body');
-const ttColors = document.getElementById('tt-colors');
-
-function showTooltip(e, tip) {
-  ttTitle.textContent = tip.title;
-  ttBody.innerHTML = tip.body.replace(/\n/g, '<br>');
-  ttColors.innerHTML = '';
-  if (tip.colors && tip.colors.length) {
-    tip.colors.forEach(c => {
-      ttColors.innerHTML += `<div class="tt-color-row"><div class="tt-dot" style="background:${c.color}"></div><span>${c.label}</span></div>`;
-    });
-  }
-  moveTooltip(e);
-  ttEl.classList.add('visible');
-}
-function moveTooltip(e) {
-  const pad = 14;
-  const tw = 280, th_h = ttEl.offsetHeight || 200;
-  let x = e.clientX + pad;
-  let y = e.clientY + pad;
-  if (x + tw > window.innerWidth - 10) x = e.clientX - tw - pad;
-  if (y + th_h > window.innerHeight - 10) y = e.clientY - th_h - pad;
-  ttEl.style.left = x + 'px';
-  ttEl.style.top  = y + 'px';
-}
-function hideTooltip() { ttEl.classList.remove('visible'); }
-
-// ---- Data & proxies ----
+// ── Proxies ─────────────────────────────────────────────────────────
 const PROXIES = [
-  t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1wk&range=5y')}`,
-  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1wk&range=5y')}`,
-  t => `https://thingproxy.freeboard.io/fetch/https://query1.finance.yahoo.com/v8/finance/chart/${t}?interval=1wk&range=5y`
+  t=>`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1wk&range=5y')}`,
+  t=>`https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1wk&range=5y')}`,
+  t=>`https://thingproxy.freeboard.io/fetch/https://query1.finance.yahoo.com/v8/finance/chart/${t}?interval=1wk&range=5y`
 ];
 const ANALYST_PROXIES = [
-  t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`,
-  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`
+  t=>`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`,
+  t=>`https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`
 ];
-
-function getFinnhubKey() { return localStorage.getItem('finnhub_key') || ''; }
-
-async function fetchFinnhub(ticker) {
-  const key = getFinnhubKey();
-  if (!key) return null;
-  const baseUrl = `https://finnhub.io/api/v1/stock/metric?symbol=${ticker}&metric=all&token=${key}`;
-  // Try direct first (works when Finnhub allows it), then through proxies
-  const urls = [
-    baseUrl,
-    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
-  ];
-  for (const url of urls) {
-    try {
-      const r = await fetch(url, {
-        method: 'GET',
-        signal: AbortSignal.timeout(8000)
-        // No Content-Type header — avoids CORS preflight
-      });
-      if (!r.ok) continue;
-      const d = await r.json();
-      if (d && d.metric) return d;
-    } catch(e) { continue; }
-  }
-  return null;
-}
 
 const DEFAULT_STOCKS = [
-  {ticker:'JNJ', name:'Johnson & Johnson'},
-  {ticker:'KO',  name:'Coca-Cola'},
-  {ticker:'DUK', name:'Duke Energy'},
-  {ticker:'SO',  name:'Southern Company'},
-  {ticker:'NEE', name:'NextEra Energy'},
-  {ticker:'MCK', name:'McKesson'},
-  {ticker:'MCD', name:'McDonald\'s'},
-  {ticker:'ABBV',name:'AbbVie'},
-  {ticker:'SYY', name:'Sysco'},
-  {ticker:'MDT', name:'Medtronic'},
-  {ticker:'ED',  name:'Consolidated Edison'},
-  {ticker:'XEL', name:'Xcel Energy'},
-  {ticker:'BDX', name:'Becton Dickinson'},
-  {ticker:'ITW', name:'Illinois Tool Works'},
+  {ticker:'JNJ',name:'Johnson & Johnson'},{ticker:'KO',name:'Coca-Cola'},
+  {ticker:'DUK',name:'Duke Energy'},{ticker:'SO',name:'Southern Company'},
+  {ticker:'NEE',name:'NextEra Energy'},{ticker:'MCK',name:'McKesson'},
+  {ticker:'MCD',name:'McDonald\'s'},{ticker:'ABBV',name:'AbbVie'},
+  {ticker:'SYY',name:'Sysco'},{ticker:'MDT',name:'Medtronic'},
+  {ticker:'ED',name:'Consolidated Edison'},{ticker:'XEL',name:'Xcel Energy'},
+  {ticker:'BDX',name:'Becton Dickinson'},{ticker:'ITW',name:'Illinois Tool Works'},
 ];
 
-let stocks = [];
-let editIdx = null;
+let stocks=[], editIdx=null;
 
-function blankStock(ticker, name) {
-  return {ticker, name:name||ticker, cost:null, qty:null, customBaseline:null,
-          livePrice:null, ewa:null, support:null, analystTarget:null,
-          rsi:null, week52Low:null, week52High:null,
-          trend1yr:null, trend2yr:null, trend5yr:null,
-          // fundamentals
-          peRatio:null, forwardPE:null, debtEquity:null,
-          beta:null, profitMargin:null, currentRatio:null,
-          hist:[], loading:false, error:false};
+function blankStock(ticker,name){
+  return {ticker,name:name||ticker,cost:null,qty:null,stopLossPct:10,customBaseline:null,
+    livePrice:null,ewa:null,support:null,analystTarget:null,rsi:null,
+    week52Low:null,week52High:null,trend1yr:null,trend2yr:null,trend5yr:null,
+    peRatio:null,forwardPE:null,debtEquity:null,beta:null,profitMargin:null,currentRatio:null,
+    hist:[],loading:false,error:false};
 }
 
-function loadStocks() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      stocks = JSON.parse(saved).map(s => ({...blankStock(s.ticker,s.name), cost:s.cost||null, qty:s.qty||null, customBaseline:s.customBaseline||null}));
-    } else {
-      stocks = DEFAULT_STOCKS.map(s => blankStock(s.ticker, s.name));
-    }
-  } catch(e) { stocks = DEFAULT_STOCKS.map(s => blankStock(s.ticker,s.name)); }
-}
+function getFinnhubKey(){return localStorage.getItem('finnhub_key')||'';}
+function getFmpKey(){return localStorage.getItem('fmp_key')||'';}
+function saveFinnhubKey(v){v?localStorage.setItem('finnhub_key',v):localStorage.removeItem('finnhub_key');}
+function saveFmpKey(v){v?localStorage.setItem('fmp_key',v):localStorage.removeItem('fmp_key');}
 
-function saveStocks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(
-    stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,customBaseline:s.customBaseline}))
-  ));
+function loadStocks(){
+  try{
+    const saved=localStorage.getItem(STORAGE_KEY);
+    if(saved) stocks=JSON.parse(saved).map(s=>({...blankStock(s.ticker,s.name),cost:s.cost||null,qty:s.qty||null,stopLossPct:s.stopLossPct||10,customBaseline:s.customBaseline||null}));
+    else stocks=DEFAULT_STOCKS.map(s=>blankStock(s.ticker,s.name));
+  }catch(e){stocks=DEFAULT_STOCKS.map(s=>blankStock(s.ticker,s.name));}
 }
-
-function exportData() {
-  const blob = new Blob([JSON.stringify(stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,customBaseline:s.customBaseline})),null,2)],{type:'application/json'});
-  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='watchlist-portfolio.json'; a.click();
+function saveStocks(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,stopLossPct:s.stopLossPct||10,customBaseline:s.customBaseline}))));
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,stopLossPct:s.stopLossPct,customBaseline:s.customBaseline})),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='watchlist-portfolio.json';a.click();
   showToast('Portfolio exported!');
 }
-
-function importData(event) {
-  const file = event.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const parsed = JSON.parse(e.target.result);
-      parsed.forEach(item => {
-        const ex = stocks.find(s=>s.ticker===item.ticker);
-        if (ex) { ex.cost=item.cost; ex.qty=item.qty; ex.customBaseline=item.customBaseline; }
-        else stocks.push({...blankStock(item.ticker,item.name), cost:item.cost||null, qty:item.qty||null, customBaseline:item.customBaseline||null});
+function importData(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const parsed=JSON.parse(e.target.result);
+      parsed.forEach(item=>{
+        const ex=stocks.find(s=>s.ticker===item.ticker);
+        if(ex){ex.cost=item.cost;ex.qty=item.qty;ex.stopLossPct=item.stopLossPct||10;ex.customBaseline=item.customBaseline;}
+        else stocks.push({...blankStock(item.ticker,item.name),cost:item.cost||null,qty:item.qty||null,stopLossPct:item.stopLossPct||10,customBaseline:item.customBaseline||null});
       });
-      saveStocks(); render(); updateSummary(); updateAI(); showToast('Portfolio imported!');
-    } catch(err) { showToast('Import failed'); }
+      saveStocks();render();updateSummary();updateAI();showToast('Portfolio imported!');
+    }catch(err){showToast('Import failed');}
   };
-  reader.readAsText(file); event.target.value='';
+  reader.readAsText(file);event.target.value='';
 }
 
-async function fetchWithFallback(proxies, ticker) {
-  for (let i=0; i<proxies.length; i++) {
-    try {
-      const r = await fetch(proxies[i](ticker), {signal:AbortSignal.timeout(9000)});
-      if (!r.ok) throw new Error('bad');
-      const d = await r.json();
-      return d;
-    } catch(e) { continue; }
-  }
-  return null;
+async function fetchWithFallback(proxies,ticker){
+  for(let i=0;i<proxies.length;i++){
+    try{
+      const r=await fetch(proxies[i](ticker),{signal:AbortSignal.timeout(9000)});
+      if(!r.ok)throw new Error('bad');
+      const d=await r.json();return d;
+    }catch(e){continue;}
+  }return null;
 }
 
-function calcEWA(closes) {
-  if (!closes||closes.length===0) return null;
-  const alpha = 2/(closes.length+1);
-  let ewa = closes[0];
-  for (let i=1;i<closes.length;i++) ewa = alpha*closes[i]+(1-alpha)*ewa;
+function calcEWA(closes){
+  if(!closes||!closes.length)return null;
+  const alpha=2/(closes.length+1);let ewa=closes[0];
+  for(let i=1;i<closes.length;i++)ewa=alpha*closes[i]+(1-alpha)*ewa;
   return ewa;
 }
-
-function calcRSI(closes, period=14) {
-  if (!closes||closes.length<period+1) return null;
-  const recent = closes.slice(-period-1);
-  let gains=0,losses=0;
-  for (let i=1;i<recent.length;i++) {
-    const diff=recent[i]-recent[i-1];
-    if(diff>0)gains+=diff; else losses+=Math.abs(diff);
-  }
-  const ag=gains/period, al=losses/period;
-  if(al===0)return 100;
-  return 100-(100/(1+ag/al));
+function calcRSI(closes,p=14){
+  if(!closes||closes.length<p+1)return null;
+  const r=closes.slice(-p-1);let g=0,l=0;
+  for(let i=1;i<r.length;i++){const d=r[i]-r[i-1];if(d>0)g+=d;else l+=Math.abs(d);}
+  const ag=g/p,al=l/p;if(al===0)return 100;return 100-(100/(1+ag/al));
+}
+function calcSupport(closes){
+  if(!closes||closes.length<20)return null;
+  const r=closes.slice(-252);const mn=Math.min(...r),mx=Math.max(...r);
+  const rng=mx-mn;if(!rng)return mn;
+  const b=20,bs=rng/b,cnt=new Array(b).fill(0);
+  r.forEach(p=>{const i=Math.min(Math.floor((p-mn)/bs),b-1);cnt[i]++;});
+  let sb=0,mc=0;for(let i=0;i<b*0.4;i++)if(cnt[i]>mc){mc=cnt[i];sb=i;}
+  return mn+(sb+0.5)*bs;
+}
+function calcTrend(closes){
+  if(!closes||closes.length<10)return null;
+  const n=closes.length;let sx=0,sy=0,sxy=0,sx2=0;
+  for(let i=0;i<n;i++){sx+=i;sy+=closes[i];sxy+=i*closes[i];sx2+=i*i;}
+  const slope=(n*sxy-sx*sy)/(n*sx2-sx*sx);
+  const mean=sy/n;return mean>0?(slope/mean)*100:null;
+}
+function getTrendLabel(closes,weeks){
+  if(!closes||closes.length<weeks*0.5)return null;
+  const sl=calcTrend(closes.slice(-Math.min(weeks,closes.length)));
+  if(sl===null)return null;
+  const ann=sl*52;
+  if(ann>5)return'up';if(ann<-3)return'down';return'flat';
 }
 
-function calcSupport(closes) {
-  if (!closes||closes.length<20) return null;
-  const recent=closes.slice(-252);
-  const min=Math.min(...recent), max=Math.max(...recent);
-  const range=max-min; if(range===0)return min;
-  const buckets=20, bs=range/buckets;
-  const counts=new Array(buckets).fill(0);
-  recent.forEach(p=>{ const idx=Math.min(Math.floor((p-min)/bs),buckets-1); counts[idx]++; });
-  let sb=0, mc=0;
-  for(let i=0;i<buckets*0.4;i++) if(counts[i]>mc){mc=counts[i];sb=i;}
-  return min+(sb+0.5)*bs;
-}
-
-// Linear regression slope — positive = uptrend, negative = downtrend
-function calcTrend(closes) {
-  if (!closes || closes.length < 10) return null;
-  const n = closes.length;
-  let sumX=0, sumY=0, sumXY=0, sumX2=0;
-  for (let i=0; i<n; i++) { sumX+=i; sumY+=closes[i]; sumXY+=i*closes[i]; sumX2+=i*i; }
-  const slope = (n*sumXY - sumX*sumY) / (n*sumX2 - sumX*sumX);
-  // Normalize: slope as % of mean price per day
-  const mean = sumY/n;
-  return mean > 0 ? (slope/mean)*100 : null;
-}
-
-// Classify trend over a slice of history
-function getTrendLabel(closes, days) {
-  if (!closes || closes.length < days*0.5) return null;
-  const slice = closes.slice(-Math.min(days, closes.length));
-  const slopePct = calcTrend(slice);
-  if (slopePct === null) return null;
-  // annualized: slope is per week, multiply by 52 weeks
-  const annualized = slopePct * 52;
-  if (annualized > 5)  return 'up';
-  if (annualized < -3) return 'down';
-  return 'flat';
-}
-
-async function fetchPrice(stock) {
-  stock.loading=true; stock.error=false;
-  try {
-    const d = await fetchWithFallback(PROXIES, stock.ticker);
-    if (!d||!d.chart||!d.chart.result||!d.chart.result[0]) throw new Error('no data');
+async function fetchPrice(stock){
+  stock.loading=true;stock.error=false;
+  try{
+    const d=await fetchWithFallback(PROXIES,stock.ticker);
+    if(!d||!d.chart||!d.chart.result||!d.chart.result[0])throw new Error('no data');
     const meta=d.chart.result[0].meta;
     const closes=(d.chart.result[0].indicators.quote[0].close||[]).filter(v=>v!=null&&!isNaN(v));
     stock.livePrice=meta.regularMarketPrice||closes[closes.length-1];
     stock.hist=closes;
-    stock.ewa=stock.customBaseline||calcEWA(closes.slice(-52)); // last 52 weeks for EWA
-    stock.rsi=calcRSI(closes.slice(-20)); // last 20 weeks (~14 trading days equiv)
+    stock.ewa=stock.customBaseline||calcEWA(closes.slice(-52));
+    stock.rsi=calcRSI(closes.slice(-20));
     stock.support=calcSupport(closes);
     stock.week52Low=meta.fiftyTwoWeekLow||Math.min(...closes.slice(-52));
     stock.week52High=meta.fiftyTwoWeekHigh||Math.max(...closes.slice(-52));
-
-    // Trend calculations: weekly data — 1yr=52w, 2yr=104w, 5yr=all
-    stock.trend1yr = getTrendLabel(closes, 52);
-    stock.trend2yr = getTrendLabel(closes, 104);
-    stock.trend5yr = getTrendLabel(closes, closes.length);
-
-    // Fundamentals from meta — Yahoo includes these in chart API
-    if (meta.trailingPE  != null) stock.peRatio      = meta.trailingPE;
-    if (meta.forwardPE   != null) stock.forwardPE    = meta.forwardPE;
-    if (meta.beta        != null) stock.beta         = meta.beta;
-    // chartPreviousClose and other meta fields vary — we get what we can
-    // D/E and margin come from quoteSummary — keep trying that separately
-
+    stock.trend1yr=getTrendLabel(closes,52);
+    stock.trend2yr=getTrendLabel(closes,104);
+    stock.trend5yr=getTrendLabel(closes,closes.length);
+    if(meta.trailingPE!=null)stock.peRatio=meta.trailingPE;
+    if(meta.forwardPE!=null)stock.forwardPE=meta.forwardPE;
+    if(meta.beta!=null)stock.beta=meta.beta;
     if(meta.longName&&stock.name===stock.ticker)stock.name=meta.longName;
     stock.loading=false;
-  } catch(e) { stock.livePrice=null;stock.loading=false;stock.error=true; }
+  }catch(e){stock.livePrice=null;stock.loading=false;stock.error=true;}
 }
 
-function getFmpKey() { return localStorage.getItem('fmp_key') || ''; }
-
-async function fetchAnalystTarget(ticker) {
-  const key = getFmpKey();
-  if (!key) return null;
-  // FMP price target consensus — free tier, CORS enabled
-  const baseUrl = `https://financialmodelingprep.com/stable/price-target-consensus?symbol=${ticker}&apikey=${key}`;
-  const urls = [
-    baseUrl,
-    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`
-  ];
-  for (const url of urls) {
-    try {
-      const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
-      if (!r.ok) continue;
-      const d = await r.json();
-      // FMP returns array or object — handle both
-      const item = Array.isArray(d) ? d[0] : d;
-      if (item && item.targetConsensus != null && item.targetConsensus > 0) return item.targetConsensus;
-      if (item && item.targetMean != null && item.targetMean > 0) return item.targetMean;
-    } catch(e) { continue; }
-  }
-  return null;
+async function fetchFinnhub(ticker){
+  const key=getFinnhubKey();if(!key)return null;
+  const base=`https://finnhub.io/api/v1/stock/metric?symbol=${ticker}&metric=all&token=${key}`;
+  const urls=[base,`https://corsproxy.io/?${encodeURIComponent(base)}`,`https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`];
+  for(const url of urls){
+    try{
+      const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+      if(!r.ok)continue;const d=await r.json();
+      if(d&&d.metric)return d;
+    }catch(e){continue;}
+  }return null;
 }
 
-async function fetchAnalyst(stock) {
-  // Try Finnhub first (most reliable, no CORS issues)
-  const fh = await fetchFinnhub(stock.ticker);
-  if (fh && fh.metric) {
-    const m = fh.metric;
-    if (m.peAnnual        != null && !stock.peRatio)  stock.peRatio      = m.peAnnual;
-    if (m.peNormalizedAnnual != null && !stock.peRatio) stock.peRatio    = m.peNormalizedAnnual;
-    if (m.peTTM           != null && !stock.peRatio)  stock.peRatio      = m.peTTM;
-    if (m.forwardPE       != null) stock.forwardPE   = m.forwardPE;
-    if (m.beta            != null && !stock.beta) stock.beta             = m.beta;
-    // D/E — exact field names confirmed from live Finnhub response
-    const de = m['totalDebt/totalEquityAnnual'] ?? m['longTermDebt/equityAnnual'] ?? m['totalDebt/totalEquityQuarterly'] ?? m['longTermDebt/equityQuarterly'] ?? null;
-    if (de != null) stock.debtEquity = de;
-    if (m.netProfitMarginAnnual != null) stock.profitMargin = m.netProfitMarginAnnual;
-    if (m.currentRatioAnnual    != null) stock.currentRatio = m.currentRatioAnnual;
-    // Always fetch price target from Yahoo Finance (free, reliable)
-    const pt = await fetchAnalystTarget(stock.ticker);
-    if (pt) stock.analystTarget = pt;
-    else if (m.targetPrice != null) stock.analystTarget = m.targetPrice;
-    return;
+async function fetchAnalystTarget(ticker){
+  const key=getFmpKey();if(!key)return null;
+  const base=`https://financialmodelingprep.com/stable/price-target-consensus?symbol=${ticker}&apikey=${key}`;
+  const urls=[base,`https://corsproxy.io/?${encodeURIComponent(base)}`];
+  for(const url of urls){
+    try{
+      const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+      if(!r.ok)continue;const d=await r.json();
+      const item=Array.isArray(d)?d[0]:d;
+      if(item&&item.targetConsensus>0)return item.targetConsensus;
+      if(item&&item.targetMean>0)return item.targetMean;
+    }catch(e){continue;}
+  }return null;
+}
+
+async function fetchAnalyst(stock){
+  const fh=await fetchFinnhub(stock.ticker);
+  if(fh&&fh.metric){
+    const m=fh.metric;
+    if(m.peAnnual!=null&&!stock.peRatio)stock.peRatio=m.peAnnual;
+    if(m.peNormalizedAnnual!=null&&!stock.peRatio)stock.peRatio=m.peNormalizedAnnual;
+    if(m.peTTM!=null&&!stock.peRatio)stock.peRatio=m.peTTM;
+    if(m.forwardPE!=null)stock.forwardPE=m.forwardPE;
+    if(m.beta!=null&&!stock.beta)stock.beta=m.beta;
+    const de=m['totalDebt/totalEquityAnnual']??m['longTermDebt/equityAnnual']??m['totalDebt/totalEquityQuarterly']??m['longTermDebt/equityQuarterly']??null;
+    if(de!=null)stock.debtEquity=de;
+    if(m.netProfitMarginAnnual!=null)stock.profitMargin=m.netProfitMarginAnnual;
+    if(m.currentRatioAnnual!=null)stock.currentRatio=m.currentRatioAnnual;
   }
-  // Fallback: Yahoo proxy
-  try {
-    const d = await fetchWithFallback(ANALYST_PROXIES, stock.ticker);
-    if (!d) return;
-    const q7 = d?.quoteResponse?.result?.[0];
-    if (q7) {
-      if (q7.targetMeanPrice != null) stock.analystTarget = q7.targetMeanPrice;
-      if (!stock.analystTarget) {
-        const pt = await fetchAnalystTarget(stock.ticker);
-        if (pt) stock.analystTarget = pt;
-      }
-      if (q7.trailingPE      != null && !stock.peRatio) stock.peRatio   = q7.trailingPE;
-      if (q7.forwardPE       != null) stock.forwardPE  = q7.forwardPE;
-      if (q7.debtToEquity    != null) stock.debtEquity = q7.debtToEquity / 100;
-      if (q7.profitMargins   != null) stock.profitMargin = q7.profitMargins * 100;
-      if (q7.currentRatio    != null) stock.currentRatio = q7.currentRatio;
-      if (q7.beta            != null && !stock.beta) stock.beta = q7.beta;
+  try{
+    const d=await fetchWithFallback(ANALYST_PROXIES,stock.ticker);
+    const q7=d?.quoteResponse?.result?.[0];
+    if(q7){
+      if(q7.targetMeanPrice!=null&&!stock.analystTarget)stock.analystTarget=q7.targetMeanPrice;
+      if(q7.trailingPE!=null&&!stock.peRatio)stock.peRatio=q7.trailingPE;
+      if(q7.forwardPE!=null&&!stock.forwardPE)stock.forwardPE=q7.forwardPE;
+      if(q7.debtToEquity!=null&&!stock.debtEquity)stock.debtEquity=q7.debtToEquity/100;
+      if(q7.profitMargins!=null&&!stock.profitMargin)stock.profitMargin=q7.profitMargins*100;
+      if(q7.beta!=null&&!stock.beta)stock.beta=q7.beta;
     }
-  } catch(e) {}
+  }catch(e){}
+  // FMP for analyst target
+  if(!stock.analystTarget){
+    const pt=await fetchAnalystTarget(stock.ticker);
+    if(pt)stock.analystTarget=pt;
+  }
 }
 
-async function refreshAll() {
+async function refreshAll(){
   const btn=document.getElementById('refreshBtn');
   btn.classList.add('spinning');
   document.getElementById('errNote').textContent='';
   stocks.forEach(s=>{s.loading=true;s.error=false;});
   render();
   await Promise.all(stocks.map(async s=>{await fetchPrice(s);await fetchAnalyst(s);}));
-  render();updateSummary();updateAI();
+  render();updateSummary();updateAI();updateAlertBar();
   btn.classList.remove('spinning');
-  const errCount=stocks.filter(s=>s.error).length;
-  if(errCount>0)document.getElementById('errNote').textContent=errCount+' ticker(s) unavailable. Yahoo Finance may be rate-limiting — try again in a minute.';
-  if(!getFinnhubKey()) document.getElementById('errNote').textContent += ' ⚠ Finnhub key needed for P/E, D/E, Beta — free at finnhub.io/register';
-  if(!getFmpKey()) document.getElementById('errNote').textContent += ' | ⚠ FMP key needed for Analyst Targets — free at financialmodelingprep.com/register';
-  document.getElementById('last-update').textContent='Last updated: '+new Date().toLocaleTimeString();
+  const err=stocks.filter(s=>s.error).length;
+  let note='';
+  if(err>0)note+=err+' ticker(s) unavailable. ';
+  if(!getFinnhubKey())note+='⚠ Add Finnhub key for P/E,Beta,D/E. ';
+  if(!getFmpKey())note+='⚠ Add FMP key for analyst targets. ';
+  document.getElementById('errNote').textContent=note;
+  document.getElementById('last-update').textContent='Updated '+new Date().toLocaleTimeString();
 }
 
-// Check each fundamental against our entry criteria
-// Returns array of {metric, value, status:'ok'|'warn'|'fail', note}
-function getFundamentalFlags(s) {
-  const flags = [];
-  // PE ratio — forward preferred, trailing fallback
-  const pe = s.forwardPE || s.peRatio;
-  if (pe !== null && pe !== undefined) {
-    const st = pe <= 20 ? 'ok' : pe <= 28 ? 'warn' : 'fail';
-    flags.push({metric:'P/E', value:fmt(pe,1), status:st,
-      note: st==='ok'?'Reasonably priced': st==='warn'?'Getting expensive':'Overpriced vs earnings'});
+// ── Signal logic ─────────────────────────────────────────────────────
+function getFundamentalFlags(s){
+  const flags=[];
+  const pe=s.forwardPE||s.peRatio;
+  if(pe!=null){const st=pe<=20?'ok':pe<=28?'warn':'fail';flags.push({metric:'P/E',value:fmt(pe,1),status:st});}
+  if(s.debtEquity!=null){
+    const isU=['DUK','SO','NEE','ED','XEL'].includes(s.ticker);
+    const wl=isU?2.0:1.0,fl=isU?3.0:2.0;
+    flags.push({metric:'D/E',value:fmt(s.debtEquity,2),status:s.debtEquity<=wl?'ok':s.debtEquity<=fl?'warn':'fail'});
   }
-  // Debt/Equity — utilities get more slack (up to 2.0), others up to 1.0
-  if (s.debtEquity !== null && s.debtEquity !== undefined) {
-    const isUtility = ['DUK','SO','NEE','ED','XEL'].includes(s.ticker);
-    const warnLimit = isUtility ? 2.0 : 1.0;
-    const failLimit = isUtility ? 3.0 : 2.0;
-    const st = s.debtEquity <= warnLimit ? 'ok' : s.debtEquity <= failLimit ? 'warn' : 'fail';
-    flags.push({metric:'D/E', value:fmt(s.debtEquity,2), status:st,
-      note: st==='ok'?'Debt under control': st==='warn'?'Elevated debt':'Dangerously high debt'});
-  }
-  // Beta — we want under 0.8
-  if (s.beta !== null && s.beta !== undefined) {
-    const st = s.beta <= 0.5 ? 'ok' : s.beta <= 0.8 ? 'warn' : 'fail';
-    flags.push({metric:'Beta', value:fmt(s.beta,2), status:st,
-      note: st==='ok'?'Low volatility — ideal': st==='warn'?'Moderate volatility':'Too volatile for strategy'});
-  }
-  // Profit margin — want positive and healthy (>8%)
-  if (s.profitMargin !== null && s.profitMargin !== undefined) {
-    const st = s.profitMargin >= 8 ? 'ok' : s.profitMargin >= 0 ? 'warn' : 'fail';
-    flags.push({metric:'Margin', value:fmt(s.profitMargin,1)+'%', status:st,
-      note: st==='ok'?'Healthy profit margin': st==='warn'?'Thin margins':'Losing money'});
-  }
-  // Current ratio — liquidity, want > 1
-  if (s.currentRatio !== null && s.currentRatio !== undefined) {
-    const st = s.currentRatio >= 1.2 ? 'ok' : s.currentRatio >= 0.8 ? 'warn' : 'fail';
-    flags.push({metric:'Liquidity', value:fmt(s.currentRatio,2), status:st,
-      note: st==='ok'?'Good liquidity': st==='warn'?'Tight liquidity':'May struggle to pay bills'});
-  }
+  if(s.beta!=null)flags.push({metric:'Beta',value:fmt(s.beta,2),status:s.beta<=0.5?'ok':s.beta<=0.8?'warn':'fail'});
+  if(s.profitMargin!=null)flags.push({metric:'Margin',value:fmt(s.profitMargin,1)+'%',status:s.profitMargin>=8?'ok':s.profitMargin>=0?'warn':'fail'});
   return flags;
 }
-
-// Overall fundamental health: 'ok' | 'warn' | 'fail'
-function getFundamentalHealth(s) {
-  const flags = getFundamentalFlags(s);
-  if (!flags.length) return null;
-  if (flags.some(f=>f.status==='fail')) return 'fail';
-  if (flags.some(f=>f.status==='warn')) return 'warn';
-  return 'ok';
+function getFundamentalHealth(s){
+  const fl=getFundamentalFlags(s);if(!fl.length)return null;
+  if(fl.some(f=>f.status==='fail'))return'fail';
+  if(fl.some(f=>f.status==='warn'))return'warn';
+  return'ok';
 }
-
-// Layer 1: Technical — price vs weighted average
-function getTechnicalSignal(s) {
-  if(!s.livePrice) return 'hold';
-  const baseline = s.ewa || s.customBaseline;
-  if(!baseline) return 'hold';
-  const chg = (s.livePrice - baseline) / baseline * 100;
-  if(s.cost && s.livePrice) {
-    const g = (s.livePrice - s.cost) / s.cost * 100;
-    if(g >= 8) return 'sell';
-    if(g <= -12) return 'sell';
+function getTrendOk(s){
+  if(!s.trend1yr&&!s.trend2yr)return true;
+  return!(s.trend1yr==='down'&&s.trend2yr==='down');
+}
+function getEntrySignal(s){
+  if(!s.livePrice)return'hold';
+  const baseline=s.ewa||s.customBaseline;if(!baseline)return'hold';
+  const chg=(s.livePrice-baseline)/baseline*100;
+  if(chg<=-9){
+    if(!getTrendOk(s))return'trendblock';
+    if(getFundamentalHealth(s)==='fail')return'fundblock';
+    return'confirmed';
   }
-  if(chg <= -9) return 'buy';
-  if(chg >= 6 && s.cost) return 'sell';
-  if(chg <= -5) return 'watch';
-  return 'hold';
+  if(chg<=-5){if(!getTrendOk(s))return'trendblock';return'watch';}
+  return'hold';
 }
-
-// Layer 2: Trend — 1yr and 2yr must not both be down
-function getTrendOk(s) {
-  if(!s.trend1yr && !s.trend2yr) return true; // not loaded yet, don't block
-  if(s.trend1yr === 'down' && s.trend2yr === 'down') return false; // both down = blocked
-  return true;
+function getExitSignal(s){
+  if(!s.livePrice||!s.cost)return'hold';
+  const pnlPct=(s.livePrice-s.cost)/s.cost*100;
+  const stopLoss=-(s.stopLossPct||10);
+  // Stop loss — cut losses
+  if(pnlPct<=stopLoss)return'stoploss';
+  // Fundamental exit — even before profit target
+  if(getFundamentalHealth(s)==='fail')return'fundexit';
+  // Profit tiers
+  if(pnlPct>=10)return'sellnow';
+  if(pnlPct>=7)return'takeprofit';
+  // Return to EWA — mission accomplished
+  const baseline=s.ewa||s.customBaseline;
+  if(baseline&&s.livePrice>=baseline*0.98)return'sellnow';
+  if(pnlPct>=4)return'watchexit';
+  return'hold';
 }
-
-// Layer 3: Fundamentals — no failing metrics
-function getFundamentalsOk(s) {
-  const health = getFundamentalHealth(s);
-  if(health === 'fail') return false;
-  return true;
-}
-
-// Combined 3-layer final signal
-function getSignal(s) {
-  const tech = getTechnicalSignal(s);
-  if(tech === 'sell') return 'sell';
-  if(tech === 'hold') return 'hold';
-  if(tech === 'watch') {
-    if(!getTrendOk(s)) return 'trendblock';
-    return 'watch';
-  }
-  // tech === 'buy' — run all three layers
-  if(!getTrendOk(s)) return 'trendblock';
-  if(!getFundamentalsOk(s)) return 'fundblock';
-  return 'confirmed'; // passed all 3 layers
-}
-
-function getBuyScore(s) {
-  if(!s.livePrice)return 0;
-  let score=0;
-  const baseline=s.ewa;
-  if(baseline&&(s.livePrice-baseline)/baseline*100<=-5)score++;
-  if(s.rsi!==null&&s.rsi<40)score++;
+function getBuyScore(s){
+  if(!s.livePrice)return 0;let score=0;
+  const b=s.ewa;
+  if(b&&(s.livePrice-b)/b*100<=-5)score++;
+  if(s.rsi!=null&&s.rsi<40)score++;
   if(s.support&&s.livePrice<=s.support*1.05)score++;
   if(s.analystTarget&&s.livePrice<s.analystTarget*0.95)score++;
   if(s.week52Low&&(s.livePrice-s.week52Low)/s.week52Low*100<10)score++;
   return score;
 }
 
+// ── Formatting helpers ───────────────────────────────────────────────
 function fmt(n,d=2){return(n==null||isNaN(n))?'—':Number(n).toFixed(d);}
 function fmtC(n){if(n==null)return'—';return(n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});}
-
-function colorCell(value, displayText, goodThresh, warnThresh, higherIsBetter=false) {
-  if(value===null||value===undefined||isNaN(value))return'<span style="color:var(--muted)">—</span>';
-  let cls;
-  if(!higherIsBetter){
-    cls=value<=goodThresh?'cell-good':value<=warnThresh?'cell-warn':'cell-bad';
-  } else {
-    cls=value>=goodThresh?'cell-good':value>=warnThresh?'cell-warn':'cell-bad';
-  }
-  return`<span class="${cls}">${displayText}</span>`;
+function colorCell(v,txt,good,warn,hi=false){
+  if(v==null||isNaN(v))return'<span style="color:var(--muted)">—</span>';
+  const cls=hi?(v>=good?'cell-good':v>=warn?'cell-warn':'cell-bad'):(v<=good?'cell-good':v<=warn?'cell-warn':'cell-bad');
+  return`<span class="${cls}">${txt}</span>`;
 }
 
-function render() {
-  const tbody=document.getElementById('tbody');
-  tbody.innerHTML='';
+// ── Tooltip ──────────────────────────────────────────────────────────
+const ttEl=document.getElementById('tooltip');
+function showTooltip(e,tip){
+  document.getElementById('tt-title').textContent=tip.title;
+  document.getElementById('tt-body').innerHTML=tip.body.replace(/\n/g,'<br>');
+  const tc=document.getElementById('tt-colors');tc.innerHTML='';
+  (tip.colors||[]).forEach(c=>{tc.innerHTML+=`<div class="tt-color-row"><div class="tt-dot" style="background:${c.color}"></div><span>${c.label}</span></div>`;});
+  moveTooltip(e);ttEl.classList.add('visible');
+}
+function moveTooltip(e){
+  const tw=280,th=ttEl.offsetHeight||200,pad=14;
+  let x=e.clientX+pad,y=e.clientY+pad;
+  if(x+tw>window.innerWidth-10)x=e.clientX-tw-pad;
+  if(y+th>window.innerHeight-10)y=e.clientY-th-pad;
+  ttEl.style.left=x+'px';ttEl.style.top=y+'px';
+}
+function hideTooltip(){ttEl.classList.remove('visible');}
+
+function buildThead(cols,trId){
+  const tr=document.getElementById(trId);tr.innerHTML='';
+  cols.forEach(col=>{
+    const th=document.createElement('th');
+    th.innerHTML=`<div class="th-label">${col.label}${col.tip.title?'<i class="info-icon">ⓘ</i>':''}</div>${col.sub?`<span class="th-sub">${col.sub}</span>`:''}`;
+    if(col.tip.title){
+      th.addEventListener('mouseenter',e=>showTooltip(e,col.tip));
+      th.addEventListener('mousemove',e=>moveTooltip(e));
+      th.addEventListener('mouseleave',hideTooltip);
+    }
+    tr.appendChild(th);
+  });
+}
+
+// ── Render BUY table ─────────────────────────────────────────────────
+function renderBuyTable(){
+  const tbody=document.getElementById('buy-tbody');tbody.innerHTML='';
   stocks.forEach((s,i)=>{
     const baseline=s.ewa||s.customBaseline;
     const chgEwa=(s.livePrice&&baseline)?(s.livePrice-baseline)/baseline*100:null;
-    const distSupport=(s.livePrice&&s.support)?(s.livePrice-s.support)/s.support*100:null;
+    const distSup=(s.livePrice&&s.support)?(s.livePrice-s.support)/s.support*100:null;
     const upside=(s.livePrice&&s.analystTarget)?(s.analystTarget-s.livePrice)/s.livePrice*100:null;
-    const dist52Low=(s.livePrice&&s.week52Low)?(s.livePrice-s.week52Low)/s.week52Low*100:null;
-    const pnl=(s.cost&&s.qty&&s.livePrice)?(s.livePrice-s.cost)*s.qty:null;
-    const pnlPct=(s.cost&&s.livePrice)?(s.livePrice-s.cost)/s.cost*100:null;
-    const sig=getSignal(s);
+    const dist52=(s.livePrice&&s.week52Low)?(s.livePrice-s.week52Low)/s.week52Low*100:null;
+    const sig=getEntrySignal(s);
     const score=getBuyScore(s);
+    const health=getFundamentalHealth(s);
+    const flags=getFundamentalFlags(s);
+    const pe=s.forwardPE||s.peRatio;
 
-    const ewaPct=chgEwa!==null?(chgEwa>=0?'+':'')+fmt(chgEwa,1)+'%':'—';
+    const ewaPct=chgEwa!=null?(chgEwa>=0?'+':'')+fmt(chgEwa,1)+'%':'—';
     const ewaPrice=baseline?`<span style="color:var(--muted);font-size:10px;font-family:var(--font-mono);display:block;margin-top:2px">avg $${fmt(baseline)}</span>`:'';
     const ewaCell=colorCell(chgEwa,ewaPct,-5,3)+ewaPrice;
-    const supportVal=s.support?`<span class="cell-neutral">$${fmt(s.support)}</span>${distSupport!==null?' '+colorCell(distSupport,'+'+fmt(distSupport,1)+'%',5,15):''}`:null;
-    const upsideCell=colorCell(upside,(upside!==null?(upside>=0?'+':'')+fmt(upside,1)+'%':'—'),5,0,true);
-    const rsiCell=colorCell(s.rsi,s.rsi!==null?fmt(s.rsi,0):'—',30,50);
-    const lowPrice = s.week52Low ? `<span style="color:var(--muted);font-size:10px;font-family:var(--font-mono);display:block;margin-top:2px">low $${fmt(s.week52Low)}</span>` : '';
-    const lowCell = colorCell(dist52Low, dist52Low!==null?'+'+fmt(dist52Low,1)+'%':'—', 10, 25) + lowPrice;
+
+    const supCell=s.support?`<span class="cell-neutral">$${fmt(s.support)}</span>${distSup!=null?' '+colorCell(distSup,'+'+fmt(distSup,1)+'%',5,15):''}`:null;
+    const upsideCell=colorCell(upside,upside!=null?(upside>=0?'+':'')+fmt(upside,1)+'%':'—',5,0,true);
+    const rsiCell=colorCell(s.rsi,s.rsi!=null?fmt(s.rsi,0):'—',30,50);
+    const low52Price=s.week52Low?`<span style="color:var(--muted);font-size:10px;font-family:var(--font-mono);display:block;margin-top:2px">low $${fmt(s.week52Low)}</span>`:'';
+    const lowCell=colorCell(dist52,dist52!=null?'+'+fmt(dist52,1)+'%':'—',10,25)+low52Price;
 
     const dotColor=score>=4?'on-buy':score>=2?'on-warn':'on-sell';
-    let dotsHtml='<div class="score-dots">';
-    for(let d=0;d<5;d++)dotsHtml+=`<div class="dot ${d<score?dotColor:'off'}"></div>`;
-    dotsHtml+='</div>';
+    let dots='<div class="score-dots">';
+    for(let d=0;d<5;d++)dots+=`<div class="dot ${d<score?dotColor:'off'}"></div>`;
+    dots+='</div>';
 
-    const pills={
-      confirmed:`<span class="pill p-confirmed">★ CONFIRMED BUY</span>`,
-      buy:`<span class="pill p-buy">▲ BUY</span>`,
-      sell:`<span class="pill p-sell">▼ SELL</span>`,
+    const deCell=(()=>{
+      if(s.debtEquity==null)return'<span style="color:var(--muted)">—</span>';
+      const isU=['DUK','SO','NEE','ED','XEL'].includes(s.ticker);
+      const wl=isU?2.0:1.0,fl=isU?3.0:2.0;
+      const cls=s.debtEquity<=wl?'cell-good':s.debtEquity<=fl?'cell-warn':'cell-bad';
+      return`<span class="${cls}">${fmt(s.debtEquity,2)}</span>`;
+    })();
+
+    let healthCell='<span style="color:var(--muted)">—</span>';
+    if(health&&s.livePrice){
+      const fail=flags.filter(f=>f.status==='fail').map(f=>f.metric);
+      const warn=flags.filter(f=>f.status==='warn').map(f=>f.metric);
+      if(health==='ok')healthCell='<span class="cell-good">✓ Healthy</span>';
+      else if(health==='warn')healthCell=`<span class="cell-warn">⚠ ${warn.join(', ')}</span>`;
+      else healthCell=`<span class="cell-bad">✕ ${fail.join(', ')}</span>`;
+    }
+
+    const trendIcon=t=>!t?'—':t==='up'?`<span style="color:var(--buy)">↑</span>`:t==='down'?`<span style="color:var(--sell)">↓</span>`:`<span style="color:var(--watch)">→</span>`;
+    const trendLabel=t=>!t?'':t==='up'?'color:var(--buy)':t==='down'?'color:var(--sell)':'color:var(--watch)';
+    const trendCell=!s.livePrice?'<span style="color:var(--muted)">—</span>':`<div style="display:flex;flex-direction:column;gap:2px;font-family:var(--font-mono);font-size:10px;line-height:1.4"><span style="${trendLabel(s.trend1yr)}">${trendIcon(s.trend1yr)} 1yr</span><span style="${trendLabel(s.trend2yr)}">${trendIcon(s.trend2yr)} 2yr</span><span style="${trendLabel(s.trend5yr)}">${trendIcon(s.trend5yr)} 5yr</span></div>`;
+
+    const sigPills={
+      confirmed:`<span class="pill p-confirmed">★ BUY</span>`,
+      trendblock:`<span class="pill p-trendblock">↓ TREND</span>`,
+      fundblock:`<span class="pill p-fundblock">⚠ FUND.</span>`,
       watch:`<span class="pill p-watch">◉ WATCH</span>`,
-      trendblock:`<span class="pill p-trendblock">↓ TREND BLOCK</span>`,
-      fundblock:`<span class="pill p-fundblock">⚠ FUND. RISK</span>`,
       hold:`<span class="pill p-hold">— HOLD</span>`
     };
 
-    const priceCell=s.loading?'<span class="loading-txt">loading…</span>':s.error?'<span style="color:var(--sell);font-size:11px">unavailable</span>':`<span class="cell-neutral">$${fmt(s.livePrice)}</span>`;
+    const priceCell=s.loading?'<span class="loading-txt">loading…</span>':s.error?'<span style="color:var(--sell);font-size:11px">error</span>':`<span class="cell-neutral">$${fmt(s.livePrice)}</span>`;
+    const isDowntrend=s.trend1yr==='down'&&s.trend2yr==='down';
+    const isFailing=health==='fail';
 
-    // Fundamentals
-    const pe = s.forwardPE || s.peRatio;
-    const peCell = colorCell(pe, pe ? fmt(pe,1) : '—', 20, 28);
-    const deCell = (() => {
-      if (s.debtEquity === null || s.debtEquity === undefined) return '<span style="color:var(--muted)">—</span>';
-      const isUtility = ['DUK','SO','NEE','ED','XEL'].includes(s.ticker);
-      const wl = isUtility ? 2.0 : 1.0, fl = isUtility ? 3.0 : 2.0;
-      const cls = s.debtEquity <= wl ? 'cell-good' : s.debtEquity <= fl ? 'cell-warn' : 'cell-bad';
-      return `<span class="${cls}">${fmt(s.debtEquity,2)}</span>`;
-    })();
-    const betaCell = colorCell(s.beta, s.beta ? fmt(s.beta,2) : '—', 0.5, 0.8);
-    const marginCell = colorCell(s.profitMargin, s.profitMargin !== null ? fmt(s.profitMargin,1)+'%' : '—', 8, 0, true);
-
-    const flags = getFundamentalFlags(s);
-    const health = getFundamentalHealth(s);
-    let healthCell = '<span style="color:var(--muted)">—</span>';
-    if (health && s.livePrice) {
-      const failFlags = flags.filter(f=>f.status==='fail').map(f=>f.metric);
-      const warnFlags = flags.filter(f=>f.status==='warn').map(f=>f.metric);
-      if (health==='ok') healthCell = '<span class="cell-good">✓ Healthy</span>';
-      else if (health==='warn') healthCell = `<span class="cell-warn">⚠ ${warnFlags.join(', ')}</span>`;
-      else healthCell = `<span class="cell-bad">✕ ${failFlags.join(', ')}</span>`;
-    }
-
-    const trendIcon = t => !t ? '—' :
-      t==='up'   ? '<span style="color:var(--buy)">↑</span>' :
-      t==='down' ? '<span style="color:var(--sell)">↓</span>' :
-                   '<span style="color:var(--watch)">→</span>';
-    const trendLabel = t => !t ? '' :
-      t==='up' ? 'color:var(--buy)' : t==='down' ? 'color:var(--sell)' : 'color:var(--watch)';
-
-    const trendCell = !s.livePrice ? '<span style="color:var(--muted)">—</span>' : `
-      <div style="display:flex;flex-direction:column;gap:2px;font-family:var(--font-mono);font-size:10px;line-height:1.4">
-        <span style="${trendLabel(s.trend1yr)}">${trendIcon(s.trend1yr)} 1yr</span>
-        <span style="${trendLabel(s.trend2yr)}">${trendIcon(s.trend2yr)} 2yr</span>
-        <span style="${trendLabel(s.trend5yr)}">${trendIcon(s.trend5yr)} 5yr</span>
-      </div>`;
-
-    const isDowntrend = s.trend1yr === 'down' || s.trend5yr === 'down';
-
-    const isFailing = health === 'fail';
     const tr=document.createElement('tr');
-    if (isDowntrend && isFailing) tr.style.cssText='border-left:3px solid var(--sell);opacity:0.7;';
-    else if (isDowntrend) tr.style.cssText='border-left:3px solid var(--sell);opacity:0.78;';
-    else if (isFailing)   tr.style.cssText='border-left:3px solid var(--watch);';
+    if(isDowntrend&&isFailing)tr.style.cssText='border-left:3px solid var(--sell);opacity:.7;';
+    else if(isDowntrend)tr.style.cssText='border-left:3px solid var(--sell);opacity:.78;';
+    else if(isFailing)tr.style.cssText='border-left:3px solid var(--watch);';
+
     tr.innerHTML=`
       <td class="td-ticker">${s.ticker}</td>
       <td class="td-name">${s.name}</td>
       <td>${priceCell}</td>
       <td>${ewaCell}</td>
-      <td>${supportVal||'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${supCell||'<span style="color:var(--muted)">—</span>'}</td>
       <td>${s.analystTarget?`<span class="cell-neutral">$${fmt(s.analystTarget)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
       <td>${upsideCell}</td>
       <td>${rsiCell}</td>
       <td>${lowCell}</td>
-      <td>${dotsHtml}</td>
-      <td class="td-name">${s.cost?'$'+fmt(s.cost):'<span style="color:var(--muted)">—</span>'}</td>
-      <td class="td-name">${s.qty||'<span style="color:var(--muted)">—</span>'}</td>
-      <td>${pnl!=null?`<span class="${pnl>=0?'cell-good':'cell-bad'}">${fmtC(pnl)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
-      <td>${pnlPct!=null?`<span class="${pnlPct>=0?'cell-good':'cell-bad'}">${pnlPct>=0?'+':''}${fmt(pnlPct,1)}%</span>`:'<span style="color:var(--muted)">—</span>'}</td>
-      <td>${pills[sig]}</td>
-      <td>${peCell}</td>
+      <td>${dots}</td>
+      <td>${colorCell(pe,pe?fmt(pe,1):'—',20,28)}</td>
       <td>${deCell}</td>
-      <td>${betaCell}</td>
-      <td>${marginCell}</td>
+      <td>${colorCell(s.beta,s.beta?fmt(s.beta,2):'—',0.5,0.8)}</td>
+      <td>${colorCell(s.profitMargin,s.profitMargin!=null?fmt(s.profitMargin,1)+'%':'—',8,0,true)}</td>
       <td>${healthCell}</td>
       <td>${trendCell}</td>
+      <td>${sigPills[sig]||sigPills.hold}</td>
       <td style="white-space:nowrap">
         <button class="icon-btn edit" onclick="openModal(${i})" title="Edit">✎</button>
         <button class="icon-btn del" onclick="removeStock(${i})" title="Remove">✕</button>
@@ -1086,11 +826,119 @@ function render() {
   });
 }
 
+// ── Render SELL table ────────────────────────────────────────────────
+function renderSellTable(){
+  const tbody=document.getElementById('sell-tbody');tbody.innerHTML='';
+  const owned=stocks.filter(s=>s.cost&&s.qty&&s.livePrice);
+  if(!owned.length){
+    tbody.innerHTML=`<tr><td colspan="12"><div class="empty-sell"><span>💼</span>No positions yet. Buy a stock and click ✎ to log your purchase price and shares.</div></td></tr>`;
+    return;
+  }
+  owned.forEach(s=>{
+    const i=stocks.indexOf(s);
+    const pnl=(s.livePrice-s.cost)*s.qty;
+    const pnlPct=(s.livePrice-s.cost)/s.cost*100;
+    const stopLoss=-(s.stopLossPct||10);
+    const baseline=s.ewa||s.customBaseline;
+    const toEwa=baseline?(s.livePrice-baseline)/baseline*100:null;
+    const exitSig=getExitSignal(s);
+    const health=getFundamentalHealth(s);
+    const flags=getFundamentalFlags(s);
+
+    // Profit progress bar (0 to 15%)
+    const profitCap=15;
+    const profitPct=Math.min(Math.max(pnlPct,0),profitCap);
+    const profitWidth=(profitPct/profitCap*100).toFixed(1);
+    const barColor=pnlPct>=10?'var(--sell)':pnlPct>=7?'var(--watch)':pnlPct>=4?'var(--buy)':'var(--muted)';
+    const profitCell=`
+      <div class="profit-bar-wrap">
+        <div class="profit-label ${pnlPct>=10?'neg':pnlPct>=7?'warn':pnlPct>=0?'pos':'neg'}">${pnlPct>=0?'+':''}${fmt(pnlPct,1)}%</div>
+        <div class="profit-bar-track"><div class="profit-bar-fill" style="width:${profitWidth}%;background:${barColor}"></div></div>
+        <div class="profit-tiers"><span>0</span><span style="${pnlPct>=7?'color:var(--watch)':''}">7%</span><span style="${pnlPct>=10?'color:var(--sell)':''}">10%</span><span style="${pnlPct>=15?'color:var(--sell)':''}">15%</span></div>
+      </div>`;
+
+    // To EWA cell
+    const toEwaCell=toEwa==null?'<span style="color:var(--muted)">—</span>':
+      toEwa>=0?`<span class="cell-good">✓ Returned</span>`:
+      colorCell(Math.abs(toEwa),fmt(Math.abs(toEwa),1)+'% away',5,15);
+
+    // Stop loss bar
+    const stopRange=Math.abs(stopLoss);
+    const dropFromCost=Math.max(-(pnlPct),0);
+    const stopWidth=Math.min(dropFromCost/stopRange*100,100).toFixed(1);
+    const stopColor=dropFromCost>=stopRange*0.8?'var(--sell)':dropFromCost>=stopRange*0.5?'var(--watch)':'var(--buy)';
+    const stopCell=`
+      <div class="stop-bar-wrap">
+        <div style="font-family:var(--font-mono);font-size:11px;color:${dropFromCost>=stopRange?'var(--sell)':dropFromCost>=stopRange*0.8?'var(--watch)':'var(--muted)'};margin-bottom:3px">${stopRange}% limit</div>
+        <div class="stop-bar-track"><div class="stop-bar-fill" style="width:${stopWidth}%;background:${stopColor}"></div></div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--font-mono);margin-top:3px">${fmt(dropFromCost,1)}% used</div>
+      </div>`;
+
+    // Fund change alert
+    let fundCell='<span style="color:var(--muted)">—</span>';
+    if(health&&s.livePrice){
+      const fail=flags.filter(f=>f.status==='fail').map(f=>f.metric);
+      const warn=flags.filter(f=>f.status==='warn').map(f=>f.metric);
+      if(health==='ok')fundCell='<span class="cell-good">✓ Healthy</span>';
+      else if(health==='warn')fundCell=`<span class="cell-warn">⚠ ${warn.join(', ')}</span>`;
+      else fundCell=`<span class="cell-bad">✕ ${fail.join(', ')}</span>`;
+    }
+
+    // Exit signal pill
+    const exitPills={
+      sellnow:`<span class="pill p-sell-now">🔴 SELL NOW</span>`,
+      takeprofit:`<span class="pill p-take-profit">💰 TAKE PROFIT</span>`,
+      watchexit:`<span class="pill p-watch-exit">◉ WATCH EXIT</span>`,
+      stoploss:`<span class="pill p-stop-loss">🛑 STOP LOSS</span>`,
+      fundexit:`<span class="pill p-fund-exit">⚠ FUND. EXIT</span>`,
+      hold:`<span class="pill p-hold-pos">— HOLD</span>`
+    };
+
+    const pnlClass=pnl>=0?'pos':'neg';
+    const pnlPctClass=pnlPct>=0?'pos':'neg';
+    const tr=document.createElement('tr');
+    if(exitSig==='sellnow'||exitSig==='stoploss')tr.style.cssText='border-left:3px solid var(--sell);';
+    else if(exitSig==='takeprofit'||exitSig==='fundexit')tr.style.cssText='border-left:3px solid var(--watch);';
+
+    tr.innerHTML=`
+      <td class="td-ticker">${s.ticker}</td>
+      <td class="td-name">${s.name}</td>
+      <td><span class="cell-neutral">$${fmt(s.livePrice)}</span></td>
+      <td><span class="cell-neutral">$${fmt(s.cost)}</span><br><span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">×${s.qty} shares</span></td>
+      <td><span class="${pnlClass}" style="font-family:var(--font-mono);font-size:12px;font-weight:500">${fmtC(pnl)}</span></td>
+      <td>${profitCell}</td>
+      <td>${toEwaCell}</td>
+      <td>${stopCell}</td>
+      <td>${fundCell}</td>
+      <td>${exitPills[exitSig]||exitPills.hold}</td>
+      <td style="white-space:nowrap">
+        <button class="icon-btn edit" onclick="openModal(${i})" title="Edit">✎</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function render(){renderBuyTable();renderSellTable();}
+
+function updateAlertBar(){
+  const bar=document.getElementById('alertBar');bar.innerHTML='';
+  const confirmed=stocks.filter(s=>getEntrySignal(s)==='confirmed').map(s=>s.ticker);
+  const sells=stocks.filter(s=>s.cost&&['sellnow','stoploss'].includes(getExitSignal(s))).map(s=>s.ticker);
+  const profits=stocks.filter(s=>s.cost&&getExitSignal(s)==='takeprofit').map(s=>s.ticker);
+  const watches=stocks.filter(s=>getEntrySignal(s)==='watch').map(s=>s.ticker);
+  if(confirmed.length)bar.innerHTML+=`<div class="alert-pill alert-buy">★ CONFIRMED BUY: ${confirmed.join(', ')}</div>`;
+  if(sells.length)bar.innerHTML+=`<div class="alert-pill alert-sell">🔴 SELL NOW: ${sells.join(', ')}</div>`;
+  if(profits.length)bar.innerHTML+=`<div class="alert-pill alert-watch">💰 TAKE PROFIT: ${profits.join(', ')}</div>`;
+  if(watches.length)bar.innerHTML+=`<div class="alert-pill alert-watch">◉ WATCHING: ${watches.join(', ')}</div>`;
+  if(!confirmed.length&&!sells.length&&!profits.length)bar.innerHTML=`<div class="alert-pill alert-none">— No active signals right now. Monitoring ${stocks.length} stocks.</div>`;
+}
+
 function updateSummary(){
   let tv=0,tc=0,hasp=false,buys=0,sells=0;
   stocks.forEach(s=>{
-    const sig=getSignal(s);
-    if(sig==='confirmed'||sig==='buy')buys++;if(sig==='sell')sells++;
+    const es=getEntrySignal(s),xs=getExitSignal(s);
+    if(es==='confirmed')buys++;
+    if(xs==='sellnow'||xs==='stoploss')sells++;
     if(s.cost&&s.qty&&s.livePrice){tv+=s.livePrice*s.qty;tc+=s.cost*s.qty;hasp=true;}
   });
   const pnl=tv-tc;
@@ -1108,86 +956,35 @@ function updateAI(){
   const lines=[];
   stocks.forEach(s=>{
     if(!s.livePrice)return;
-    const sig=getSignal(s);const score=getBuyScore(s);
-    const health=getFundamentalHealth(s);
-    const flags=getFundamentalFlags(s);
+    const es=getEntrySignal(s);
+    const xs=getExitSignal(s);
     const chg=s.ewa?((s.livePrice-s.ewa)/s.ewa*100).toFixed(1):null;
-    // Fundamental deterioration warning — even if no trade signal
-    if(health==='fail'){
-      const failList=flags.filter(f=>f.status==='fail').map(f=>`${f.metric} (${f.value}: ${f.note})`).join(', ');
-      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">✕ FUNDAMENTALS FAILING.</span> ${failList}. Consider removing from watchlist.`);
-    } else if(health==='warn' && sig!=='buy'){
-      const warnList=flags.filter(f=>f.status==='warn').map(f=>`${f.metric} (${f.value})`).join(', ');
-      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">⚠ Fundamentals stretched:</span> ${warnList}. Monitor closely.`);
-    }
-    if(sig==='confirmed'){
-      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--buy);font-weight:600">★ CONFIRMED BUY — all 3 layers passed.</span> Down ${chg}% from weighted average, uptrending, fundamentals healthy. Score: ${score}/5.${s.rsi&&s.rsi<35?' RSI '+s.rsi.toFixed(0)+' confirms oversold.':''}${s.analystTarget?' Analyst target $'+s.analystTarget.toFixed(0)+'.':''} ${s.cost?'You already hold a position.':'No position yet — highest conviction entry signal.'}`);
-    } else if(sig==='trendblock'){
-      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">↓ TREND BLOCK.</span> Price dipped ${chg}% but both 1yr and 2yr trends are falling. Do NOT buy — this is not a temporary dip, the stock is in structural decline. Consider removing it from your watchlist.`);
-    } else if(sig==='fundblock'){
-      const failList=flags.filter(f=>f.status==='fail').map(f=>f.metric).join(', ');
-      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">⚠ FUND. RISK.</span> Price dipped ${chg}% but fundamentals are failing (${failList}). Wait for the company to fix its balance sheet before buying this dip.`);
-    } else if(sig==='sell'){
-      const gp=s.cost?((s.livePrice-s.cost)/s.cost*100).toFixed(1):null;
-      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">▼ SELL SIGNAL.</span>${gp!=null?' You are '+(gp>=0?'up':'down')+' '+Math.abs(gp)+'% on this position.':''} Consider ${gp>=0?'taking profit':'limiting your loss'}.`);
-    } else if(sig==='watch'&&score>=2){
-      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">◉ WATCH.</span> Down ${chg}% — approaching buy zone. Score ${score}/5.${s.rsi?' RSI '+s.rsi.toFixed(0)+'.':''}`);
-    }
+    const score=getBuyScore(s);
+    // Entry signals
+    if(es==='confirmed')lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--buy);font-weight:600">★ CONFIRMED BUY.</span> Down ${chg}% from average. Score ${score}/5. All 3 layers passed. ${s.analystTarget?'Analyst target $'+s.analystTarget.toFixed(0)+'.':''}`);
+    else if(es==='trendblock')lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">↓ TREND BLOCK.</span> Price dipped ${chg}% but 1yr+2yr trends are falling. Do not buy.`);
+    // Exit signals
+    if(xs==='sellnow'){const gp=((s.livePrice-s.cost)/s.cost*100).toFixed(1);lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">🔴 SELL NOW.</span> You are ${gp>=0?'up':'down'} ${Math.abs(gp)}% on this position. Exit immediately.`);}
+    else if(xs==='stoploss')lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">🛑 STOP LOSS HIT.</span> Loss exceeds your ${s.stopLossPct||10}% threshold. Cut the position to protect your capital.`);
+    else if(xs==='takeprofit'){const gp=((s.livePrice-s.cost)/s.cost*100).toFixed(1);lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">💰 TAKE PROFIT.</span> You are up ${gp}% — within your 7–10% exit zone. Good time to sell.`);}
+    else if(xs==='fundexit')lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">⚠ FUNDAMENTAL EXIT.</span> Fundamentals have deteriorated since you bought. Consider exiting even without a price trigger.`);
   });
-  if(!lines.length)lines.push('All stocks are trading within normal ranges. No action needed — hold positions and wait for a dip. <span style="color:var(--muted);font-size:12px">Tip: hover over any column header ⓘ to learn what each indicator means.</span>');
+  if(!lines.length)lines.push('All positions are healthy and all watchlist stocks are in normal ranges. No action needed.');
   el.innerHTML=lines.join('<br><br>');
   chips.innerHTML='';
-
-  // Build a summary of current watchlist state for context
-  const buyStocks = stocks.filter(s=>['confirmed','buy'].includes(getSignal(s))).map(s=>s.ticker).join(', ') || 'none';
-  const watchStocks = stocks.filter(s=>getSignal(s)==='watch').map(s=>s.ticker).join(', ') || 'none';
-  const topDip = stocks.filter(s=>s.livePrice&&s.ewa).sort((a,b)=>{
-    const ca=(a.livePrice-a.ewa)/a.ewa, cb=(b.livePrice-b.ewa)/b.ewa;
-    return ca-cb;
-  })[0];
-
-  const questions = [
-    {
-      label: 'Why is this stock dipping?',
-      prompt: `I'm using a mean reversion trading strategy. My watchlist currently shows these BUY signals: ${buyStocks}. These are WATCH signals: ${watchStocks}. ${topDip ? `The biggest dip right now is ${topDip.ticker} (${((topDip.livePrice-topDip.ewa)/topDip.ewa*100).toFixed(1)}% below its weighted average). ` : ''}Can you search for recent news and explain why ${topDip ? topDip.ticker : 'these stocks'} is dipping? Is it a temporary overreaction or something more serious?`
-    },
-    {
-      label: 'Is this dip news-driven?',
-      prompt: `I'm a mean reversion trader. My current BUY signals are: ${buyStocks}. My WATCH signals are: ${watchStocks}. For each of these, can you search for the latest news and tell me: (1) is the dip caused by temporary bad news like a weak earnings quarter, market overreaction, or sector rotation? Or (2) is there something fundamentally wrong with the company? I only want to buy dips that are temporary overreactions.`
-    },
-    {
-      label: 'How to size my position?',
-      prompt: `I'm a mean reversion trader with a strategy of buying dips of 10%+ on fundamentally stable stocks and selling when they recover. My current BUY signals are: ${buyStocks}. Can you explain how I should size my position for these trades? Specifically: what % of my portfolio should I put into one trade, should I buy all at once or in stages, and what's a sensible stop-loss level?`
-    }
-  ];
-
-  questions.forEach(q => {
-    const b = document.createElement('button');
-    b.className = 'chip';
-    b.textContent = q.label;
-    b.onclick = () => {
-      // Copy prompt to clipboard and show instructions
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(q.prompt).then(() => {
-          showToast('Question copied! Paste it into a new Claude chat.');
-        }).catch(() => {
-          showToast('Open Claude and ask: ' + q.label);
-        });
-      } else {
-        showToast('Open Claude.ai and ask: ' + q.label);
-      }
-    };
+  const buyStocks=stocks.filter(s=>getEntrySignal(s)==='confirmed').map(s=>s.ticker).join(', ')||'none';
+  const sellStocks=stocks.filter(s=>s.cost&&['sellnow','stoploss'].includes(getExitSignal(s))).map(s=>s.ticker).join(', ')||'none';
+  const topDip=stocks.filter(s=>s.livePrice&&s.ewa).sort((a,b)=>(a.livePrice-a.ewa)/a.ewa-(b.livePrice-b.ewa)/b.ewa)[0];
+  [
+    {label:'Why is this stock dipping?',prompt:`Mean reversion trader. BUY signals: ${buyStocks}. ${topDip?`Biggest dip: ${topDip.ticker} (${((topDip.livePrice-topDip.ewa)/topDip.ewa*100).toFixed(1)}% below average). `:''}Search for recent news — is this a temporary overreaction or something serious?`},
+    {label:'Is this dip news-driven?',prompt:`Mean reversion trader. BUY signals: ${buyStocks}. For each, search latest news: is the dip from temporary bad news (weak earnings, market overreaction) or a fundamental problem? I only buy temporary overreactions.`},
+    {label:'How to size my position?',prompt:`Mean reversion trader buying 10%+ dips on stable stocks. BUY signals: ${buyStocks}. How should I size positions? What % of portfolio per trade, buy all at once or in stages, sensible stop loss level?`}
+  ].forEach(q=>{
+    const b=document.createElement('button');b.className='chip';b.textContent=q.label;
+    b.onclick=()=>{if(navigator.clipboard)navigator.clipboard.writeText(q.prompt).then(()=>showToast('Question copied! Paste into Claude.'));};
     chips.appendChild(b);
   });
-
-  // Add a direct Claude link button
-  const openBtn = document.createElement('a');
-  openBtn.href = 'https://claude.ai';
-  openBtn.target = '_blank';
-  openBtn.className = 'chip';
-  openBtn.style.cssText = 'color:var(--accent);border-color:rgba(124,106,247,.3);text-decoration:none;';
-  openBtn.textContent = '↗ Open Claude';
-  chips.appendChild(openBtn);
+  const a=document.createElement('a');a.href='https://claude.ai';a.target='_blank';a.className='chip';a.textContent='↗ Open Claude';chips.appendChild(a);
 }
 
 function openModal(idx){
@@ -1196,6 +993,7 @@ function openModal(idx){
   document.getElementById('modal-sub').textContent=s.name;
   document.getElementById('inp-cost').value=s.cost||'';
   document.getElementById('inp-qty').value=s.qty||'';
+  document.getElementById('inp-stop').value=s.stopLossPct||10;
   document.getElementById('inp-base').value=s.customBaseline||'';
   document.getElementById('modal').style.display='flex';
 }
@@ -1204,21 +1002,21 @@ function saveModal(){
   if(editIdx===null)return;
   const cost=parseFloat(document.getElementById('inp-cost').value);
   const qty=parseFloat(document.getElementById('inp-qty').value);
+  const stop=parseFloat(document.getElementById('inp-stop').value);
   const base=parseFloat(document.getElementById('inp-base').value);
   const s=stocks[editIdx];
   s.cost=(!isNaN(cost)&&cost>0)?cost:null;
   s.qty=(!isNaN(qty)&&qty>0)?qty:null;
+  s.stopLossPct=(!isNaN(stop)&&stop>0)?stop:10;
   s.customBaseline=(!isNaN(base)&&base>0)?base:null;
   if(s.customBaseline)s.ewa=s.customBaseline;
-  saveStocks();closeModal();render();updateSummary();updateAI();
+  saveStocks();closeModal();render();updateSummary();updateAI();updateAlertBar();
   showToast('Position saved!');
 }
-
 function removeStock(idx){
   if(!confirm('Remove '+stocks[idx].ticker+'?'))return;
-  stocks.splice(idx,1);saveStocks();render();updateSummary();updateAI();
+  stocks.splice(idx,1);saveStocks();render();updateSummary();updateAI();updateAlertBar();
 }
-
 async function addTicker(){
   const inp=document.getElementById('addInput');
   const ticker=inp.value.trim().toUpperCase();
@@ -1226,38 +1024,26 @@ async function addTicker(){
   const s=blankStock(ticker);stocks.push(s);inp.value='';
   saveStocks();render();
   await fetchPrice(s);await fetchAnalyst(s);
-  saveStocks();render();updateSummary();updateAI();
+  saveStocks();render();updateSummary();updateAI();updateAlertBar();
 }
-
-function toggleAI() {
-  const body = document.getElementById('ai-collapsible');
-  const btn = document.getElementById('ai-toggle');
-  const isOpen = body.style.display !== 'none';
-  body.style.display = isOpen ? 'none' : 'block';
-  btn.textContent = isOpen ? '+' : '−';
+function toggleAI(){
+  const body=document.getElementById('ai-collapsible');
+  const btn=document.getElementById('ai-toggle');
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  btn.textContent=open?'+':'−';
 }
-
-function saveFmpKey(val) {
-  if (val) localStorage.setItem('fmp_key', val);
-  else localStorage.removeItem('fmp_key');
-}
-
-function saveFinnhubKey(val) {
-  if (val) localStorage.setItem('finnhub_key', val);
-  else localStorage.removeItem('finnhub_key');
-}
-
 function closeBanner(){document.getElementById('banner').style.display='none';localStorage.setItem(BANNER_KEY,'1');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-buildThead();
+// ── Init ─────────────────────────────────────────────────────────────
+buildThead(BUY_COLS,'buy-thead');
+buildThead(SELL_COLS,'sell-thead');
 loadStocks();
 if(localStorage.getItem(BANNER_KEY))document.getElementById('banner').style.display='none';
-const savedKey = getFinnhubKey();
-if (savedKey) document.getElementById('fh-key-input').value = savedKey;
-const savedFmpKey = getFmpKey();
-if (savedFmpKey) document.getElementById('fmp-key-input').value = savedFmpKey;
-render();updateSummary();
+const savedFhKey=getFinnhubKey();if(savedFhKey)document.getElementById('fh-key-input').value=savedFhKey;
+const savedFmpKey=getFmpKey();if(savedFmpKey)document.getElementById('fmp-key-input').value=savedFmpKey;
+render();updateSummary();updateAlertBar();
 </script>
 </body>
 </html>

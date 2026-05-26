@@ -186,7 +186,6 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
           style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:190px;"
           oninput="saveFinnhubKey(this.value)">
         <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap" title="Get free key — takes 30 seconds">get free ↗</a>
-        <button onclick="debugTarget()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:2px 7px;border-radius:4px;font-size:9px;font-family:var(--font-mono);cursor:pointer;">test target</button>
       </div>
       <button class="hbtn" onclick="exportData()">⬇ Export</button>
       <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -754,22 +753,20 @@ async function fetchPrice(stock) {
   } catch(e) { stock.livePrice=null;stock.loading=false;stock.error=true; }
 }
 
-async function fetchFinnhubTarget(ticker) {
-  const key = getFinnhubKey();
-  if (!key) return null;
-  const baseUrl = `https://finnhub.io/api/v1/stock/price-target?symbol=${ticker}&token=${key}`;
+async function fetchAnalystTarget(ticker) {
+  // Yahoo Finance v10 quoteSummary financialData has targetMeanPrice — free and accessible
   const urls = [
-    baseUrl,
-    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
+    `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ticker+'?modules=financialData')}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ticker+'?modules=financialData')}`,
+    `https://corsproxy.io/?${encodeURIComponent('https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+ticker+'?modules=financialData')}`,
   ];
   for (const url of urls) {
     try {
-      const r = await fetch(url, {method:'GET', signal:AbortSignal.timeout(8000)});
+      const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
       if (!r.ok) continue;
       const d = await r.json();
-      // targetMean is the consensus average analyst price target
-      if (d && d.targetMean != null && d.targetMean > 0) return d.targetMean;
+      const target = d?.quoteSummary?.result?.[0]?.financialData?.targetMeanPrice?.raw;
+      if (target && target > 0) return target;
     } catch(e) { continue; }
   }
   return null;
@@ -790,8 +787,8 @@ async function fetchAnalyst(stock) {
     if (de != null) stock.debtEquity = de;
     if (m.netProfitMarginAnnual != null) stock.profitMargin = m.netProfitMarginAnnual;
     if (m.currentRatioAnnual    != null) stock.currentRatio = m.currentRatioAnnual;
-    // Always fetch price target from dedicated endpoint — more reliable than metric.targetPrice
-    const pt = await fetchFinnhubTarget(stock.ticker);
+    // Always fetch price target from Yahoo Finance (free, reliable)
+    const pt = await fetchAnalystTarget(stock.ticker);
     if (pt) stock.analystTarget = pt;
     else if (m.targetPrice != null) stock.analystTarget = m.targetPrice;
     return;
@@ -803,6 +800,10 @@ async function fetchAnalyst(stock) {
     const q7 = d?.quoteResponse?.result?.[0];
     if (q7) {
       if (q7.targetMeanPrice != null) stock.analystTarget = q7.targetMeanPrice;
+      if (!stock.analystTarget) {
+        const pt = await fetchAnalystTarget(stock.ticker);
+        if (pt) stock.analystTarget = pt;
+      }
       if (q7.trailingPE      != null && !stock.peRatio) stock.peRatio   = q7.trailingPE;
       if (q7.forwardPE       != null) stock.forwardPE  = q7.forwardPE;
       if (q7.debtToEquity    != null) stock.debtEquity = q7.debtToEquity / 100;
@@ -1206,22 +1207,6 @@ async function addTicker(){
   saveStocks();render();
   await fetchPrice(s);await fetchAnalyst(s);
   saveStocks();render();updateSummary();updateAI();
-}
-
-async function debugTarget() {
-  const key = getFinnhubKey();
-  if (!key) { alert('No Finnhub key set'); return; }
-  const baseUrl = `https://finnhub.io/api/v1/stock/price-target?symbol=JNJ&token=${key}`;
-  const urls = [baseUrl, `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`, `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`];
-  for (const url of urls) {
-    try {
-      const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
-      const text = await r.text();
-      alert('Price target response for JNJ:\n\n' + text.substring(0, 500));
-      return;
-    } catch(e) { continue; }
-  }
-  alert('All requests failed');
 }
 
 function saveFinnhubKey(val) {

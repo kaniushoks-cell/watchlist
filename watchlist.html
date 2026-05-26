@@ -450,7 +450,7 @@ const UNIVERSE = [
   // Water Utilities
   {ticker:'AWK', name:'American Water Works',  strategy:1, group:'Water Utilities',    groupId:2},
   {ticker:'SJW', name:'SJW Group',             strategy:1, group:'Water Utilities',    groupId:2},
-  {ticker:'WTR', name:'Essential Utilities',   strategy:1, group:'Water Utilities',    groupId:2},
+  {ticker:'WTRG',name:'Essential Utilities',  strategy:1, group:'Water Utilities',    groupId:2},
   // Gas Utilities
   {ticker:'ATO', name:'Atmos Energy',          strategy:1, group:'Gas Utilities',      groupId:3},
   {ticker:'ED',  name:'Consolidated Edison',   strategy:1, group:'Gas Utilities',      groupId:3},
@@ -894,13 +894,13 @@ function renderBuyTable(){
     if(s.strategy!==prevStrat){
       const divRow=document.createElement('tr');
       divRow.style.cssText='border:none;background:transparent;';
-      divRow.innerHTML=`<td colspan="20" style="padding:8px 12px 4px;border:none">
-        <div class="strategy-divider ${s.strategy===1?'strat1-divider':'strat2-divider'}">
-          <div class="strategy-divider-line"></div>
-          <div class="strategy-divider-label">${s.strategy===1?'🛡 Strategy 1 — Stable Mean Reversion':'⚡ Strategy 2 — Event-Sensitive Mean Reversion'}</div>
-          <div class="strategy-divider-line"></div>
-        </div>
-      </td>`;
+      const stratLabel=s.strategy===1?'Shield Strategy 1 — Stable Mean Reversion':'Lightning Strategy 2 — Event-Sensitive Mean Reversion';
+      const stratClass=s.strategy===1?'strat1-divider':'strat2-divider';
+      const td=document.createElement('td');
+      td.setAttribute('colspan','20');
+      td.style.cssText='padding:8px 12px 4px;border:none';
+      td.innerHTML='<div class="strategy-divider '+stratClass+'"><div class="strategy-divider-line"></div><div class="strategy-divider-label">'+stratLabel+'</div><div class="strategy-divider-line"></div></div>';
+      divRow.appendChild(td);
       tbody.appendChild(divRow);
       prevStrat=s.strategy;
     }
@@ -913,11 +913,12 @@ function renderBuyTable(){
     if(isFirst&&s.group){
       const gRow=document.createElement('tr');
       gRow.style.cssText='border:none;background:transparent;';
-      const gv=`var(${GC[(s.groupId-1)%8]})`;
-      const bv=`var(${GB[(s.groupId-1)%8]})`;
-      gRow.innerHTML=`<td colspan="20" style="padding:4px 12px 2px;border:none">
-        <span style="font-size:10px;font-family:var(--font-mono);font-weight:600;color:${bv};letter-spacing:.5px;text-transform:uppercase;">${s.group}</span>
-      </td>`;
+      const bv='var('+GB[(s.groupId-1)%8]+')';
+      const gtd=document.createElement('td');
+      gtd.setAttribute('colspan','20');
+      gtd.style.cssText='padding:4px 12px 2px;border:none';
+      gtd.innerHTML='<span style="font-size:10px;font-family:var(--font-mono);font-weight:600;color:'+bv+';letter-spacing:.5px;text-transform:uppercase">'+s.group+'</span>';
+      gRow.appendChild(gtd);
       tbody.appendChild(gRow);
     }
 

@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mean Reversion Watchlist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:#2a2a3a;
+  --text:#e8e8f0;--muted:#6b6b88;--accent:#7c6af7;
+  --buy:#4fd9aa;--sell:#f97c7c;--watch:#f0a550;
+  --buy-bg:rgba(79,217,170,.12);--sell-bg:rgba(249,124,124,.12);--watch-bg:rgba(240,165,80,.12);
+  --font-head:'Syne',sans-serif;--font-mono:'DM Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-head);min-height:100vh}
+.app{max-width:100%;padding:20px 16px 80px}
+
+/* header */
+.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+.header-left h1{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.header-left p{font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--font-mono)}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hbtn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:7px 13px;border-radius:8px;font-family:var(--font-mono);font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s}
+.hbtn:hover{color:var(--text);border-color:var(--accent)}
+.hbtn.primary{background:rgba(124,106,247,.15);border-color:rgba(124,106,247,.4);color:var(--accent)}
+.spin{display:inline-block}
+.spinning .spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* summary */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:600px){.summary{grid-template-columns:repeat(2,1fr)}}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}
+.sum-card .lbl{font-size:10px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.sum-card .val{font-size:18px;font-weight:600}
+.pos{color:var(--buy)}.neg{color:var(--sell)}.warn{color:var(--watch)}.neutral{color:var(--text)}
+
+/* AI panel */
+.ai-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.ai-head{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.ai-head h2{font-size:13px;font-weight:600}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--buy);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+.ai-body{padding:14px 16px;font-size:13px;line-height:1.75}
+.ai-body .tk{font-family:var(--font-mono);font-weight:600;color:var(--accent);background:rgba(124,106,247,.1);padding:1px 5px;border-radius:4px}
+.ai-chips{padding:0 16px 12px;display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:20px;font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+
+/* legend */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:11px;font-family:var(--font-mono)}
+.legend-item{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.legend-dot{width:9px;height:9px;border-radius:50%}
+
+/* table */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1150px}
+thead tr{border-bottom:1px solid var(--border)}
+thead th{padding:9px 11px;font-size:9px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.5px;text-transform:uppercase;text-align:left;white-space:nowrap;cursor:help;position:relative}
+thead th .th-label{display:flex;align-items:center;gap:4px}
+thead th .th-sub{font-size:8px;color:#404058;display:block;letter-spacing:0;text-transform:none;margin-top:1px;font-weight:400}
+thead th .info-icon{width:13px;height:13px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:8px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-style:normal;line-height:1}
+
+/* tooltip */
+.tooltip-box{
+  position:fixed;
+  background:#1e1e2e;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+  width:280px;
+  font-family:var(--font-head);
+  font-size:12px;
+  line-height:1.6;
+  color:var(--text);
+  z-index:9999;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .15s;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+}
+.tooltip-box.visible{opacity:1}
+.tooltip-box .tt-title{font-size:13px;font-weight:600;margin-bottom:6px;color:var(--accent)}
+.tooltip-box .tt-body{color:#a0a0b8;font-size:11px;line-height:1.65}
+.tooltip-box .tt-colors{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.tooltip-box .tt-color-row{display:flex;align-items:center;gap:8px;font-size:11px}
+.tooltip-box .tt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* cells */
+.cell-good{background:var(--buy-bg);color:var(--buy);font-family:var(--font-mono);font-size:12px;font-weight:500;border-radius:5px;padding:3px 7px;display:inline-block;white-space:nowrap}
+.cell-bad{background:var(--sell-bg);color:var(--sell);font-family:var(--font-mono);font-size:12px;font-weight:500;border-radius:5px;padding:3px 7px;display:inline-block;white-space:nowrap}
+.cell-warn{background:var(--watch-bg);color:var(--watch);font-family:var(--font-mono);font-size:12px;font-weight:500;border-radius:5px;padding:3px 7px;display:inline-block;white-space:nowrap}
+.cell-neutral{font-family:var(--font-mono);font-size:12px;color:var(--text)}
+
+/* score dots */
+.score-dots{display:flex;gap:3px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot.on-buy{background:var(--buy)}
+.dot.on-sell{background:var(--sell)}
+.dot.on-warn{background:var(--watch)}
+.dot.off{background:var(--border)}
+
+/* signal */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:10px;font-weight:600;font-family:var(--font-mono);white-space:nowrap}
+.p-buy{background:var(--buy-bg);color:var(--buy);border:1px solid rgba(79,217,170,.3)}
+.p-confirmed{background:rgba(79,217,170,.25);color:var(--buy);border:2px solid rgba(79,217,170,.7);font-size:11px}
+.p-sell{background:var(--sell-bg);color:var(--sell);border:1px solid rgba(249,124,124,.3)}
+.p-trendblock{background:rgba(249,124,124,.2);color:var(--sell);border:1px solid rgba(249,124,124,.5)}
+.p-fundblock{background:rgba(240,165,80,.2);color:var(--watch);border:1px solid rgba(240,165,80,.5)}
+.p-watch{background:var(--watch-bg);color:var(--watch);border:1px solid rgba(240,165,80,.3)}
+.p-hold{background:rgba(107,107,136,.1);color:var(--muted);border:1px solid rgba(107,107,136,.2)}
+
+.icon-btn{background:none;border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;margin-left:3px}
+.icon-btn:hover.edit{border-color:var(--accent);color:var(--accent)}
+.icon-btn:hover.del{border-color:var(--sell);color:var(--sell)}
+.loading-txt{font-family:var(--font-mono);font-size:11px;color:var(--muted);animation:pulse 1.2s ease-in-out infinite}
+
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:10px 11px;font-size:12px;vertical-align:middle}
+.td-ticker{font-weight:600;font-family:var(--font-mono);color:var(--accent);white-space:nowrap}
+.td-name{color:var(--muted);font-size:11px;min-width:120px}
+
+.add-row{padding:10px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.add-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:7px;font-family:var(--font-mono);font-size:13px;width:100px;outline:none;transition:border .15s}
+.add-input:focus{border-color:var(--accent)}
+.btn-add{background:rgba(124,106,247,.15);border:1px solid rgba(124,106,247,.3);color:var(--accent);padding:6px 13px;border-radius:7px;font-family:var(--font-head);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-add:hover{background:rgba(124,106,247,.25)}
+.err-note{font-size:11px;color:var(--muted);font-family:var(--font-mono);padding:7px 12px;border-top:1px solid var(--border);min-height:26px}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;width:360px;max-width:92vw}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:2px}
+.msub{font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:18px}
+.field{margin-bottom:13px}
+.field label{font-size:10px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-family:var(--font-mono);font-size:13px;outline:none;transition:border .15s}
+.field input:focus{border-color:var(--accent)}
+.field .hint{font-size:10px;color:var(--muted);margin-top:3px;font-family:var(--font-mono)}
+.modal-btns{display:flex;gap:8px;margin-top:18px}
+.btn-save{flex:1;background:var(--accent);border:none;color:#fff;padding:10px;border-radius:8px;font-family:var(--font-head);font-weight:600;font-size:13px;cursor:pointer;transition:opacity .15s}
+.btn-save:hover{opacity:.85}
+.btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:10px 14px;border-radius:8px;font-family:var(--font-head);font-size:13px;cursor:pointer}
+.btn-cancel:hover{color:var(--text)}
+
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:12px;font-family:var(--font-mono);color:var(--buy);z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.banner{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:12px;line-height:1.65;color:var(--muted)}
+.banner b{color:var(--text);font-weight:600}
+.banner-close{float:right;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;margin-left:8px}
+</style>
+</head>
+<body>
+
+<!-- Tooltip -->
+<div class="tooltip-box" id="tooltip">
+  <div class="tt-title" id="tt-title"></div>
+  <div class="tt-body" id="tt-body"></div>
+  <div class="tt-colors" id="tt-colors"></div>
+</div>
+
+<div class="app">
+  <div id="banner" class="banner">
+    <span class="banner-close" onclick="closeBanner()">✕</span>
+    <b>Mean Reversion Watchlist.</b> Data saves automatically in this browser.
+    To sync to another computer: <b>Export</b> → save file → <b>Import</b> on other device.
+    Hover over any column header <b>ⓘ</b> to learn what it means.
+    <br>To unlock P/E, D/E, Beta and Margin data: paste your free <b>Finnhub API key</b> above — get one free in 30 seconds at <a href="https://finnhub.io/register" target="_blank" style="color:var(--accent)">finnhub.io/register</a>. Key saves automatically in your browser.
+  </div>
+
+  <div class="header">
+    <div class="header-left">
+      <h1>📈 Mean Reversion Watchlist</h1>
+      <p id="last-update">Click "Refresh prices" to load live data</p>
+    </div>
+    <div class="header-actions">
+      <div id="fh-key-wrap" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">
+        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap">Finnhub key:</span>
+        <input id="fh-key-input" type="password" placeholder="Paste free key → get P/E, D/E, Beta" autocomplete="off"
+          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:190px;"
+          oninput="saveFinnhubKey(this.value)">
+        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap" title="Get free key — takes 30 seconds">get free ↗</a>
+      </div>
+      <button class="hbtn" onclick="exportData()">⬇ Export</button>
+      <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+      <button class="hbtn primary" id="refreshBtn" onclick="refreshAll()"><span class="spin">↻</span> Refresh prices</button>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="sum-card"><div class="lbl">Portfolio Value</div><div class="val neutral" id="sum-value">—</div></div>
+    <div class="sum-card"><div class="lbl">Total P&L</div><div class="val neutral" id="sum-pnl">—</div></div>
+    <div class="sum-card"><div class="lbl">Buy Signals</div><div class="val pos" id="sum-buys">0</div></div>
+    <div class="sum-card"><div class="lbl">Sell Signals</div><div class="val neg" id="sum-sells">0</div></div>
+  </div>
+
+  <div class="ai-panel">
+    <div class="ai-head"><div class="ai-dot"></div><h2>AI Analyst — live recommendations</h2></div>
+    <div class="ai-body" id="aiMsg">Refresh prices to get your personalized analysis.</div>
+    <div class="ai-chips" id="aiChips"></div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--buy)"></div>Green = Good / Bullish</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--watch)"></div>Yellow = Watch / Neutral</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--sell)"></div>Red = Caution / Bearish</div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr id="thead-row"></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="add-row">
+      <input class="add-input" id="addInput" placeholder="e.g. AAPL" maxlength="6" onkeydown="if(event.key==='Enter')addTicker()">
+      <button class="btn-add" onclick="addTicker()">+ Add stock</button>
+      <span style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">Type any ticker and press Enter</span>
+    </div>
+    <div class="err-note" id="errNote"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">Edit Position</h3>
+    <div class="msub" id="modal-sub"></div>
+    <div class="field">
+      <label>Purchase Price per Share ($)</label>
+      <input type="number" id="inp-cost" placeholder="e.g. 165.50" step="0.01" min="0">
+      <div class="hint">Leave blank if you haven't bought yet</div>
+    </div>
+    <div class="field">
+      <label>Number of Shares Owned</label>
+      <input type="number" id="inp-qty" placeholder="e.g. 10" step="1" min="0">
+    </div>
+    <div class="field">
+      <label>Custom Baseline Price ($) — optional</label>
+      <input type="number" id="inp-base" placeholder="Leave blank to use weighted average" step="0.01" min="0">
+      <div class="hint">Override the auto-calculated baseline</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveModal()">Save position</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'mrw_v4';
+const BANNER_KEY  = 'mrw_banner_v4';
+
+// Column definitions with tooltips
+const COLUMNS = [
+  {
+    key:'ticker', label:'Ticker', sub:'',
+    tip:{
+      title:'Ticker Symbol',
+      body:'The stock\'s unique market identifier. For example, JNJ = Johnson & Johnson, PG = Procter & Gamble. Used to look up the stock on any exchange.',
+      colors:[]
+    }
+  },
+  {
+    key:'name', label:'Company', sub:'',
+    tip:{title:'Company Name', body:'The full name of the publicly traded company.', colors:[]}
+  },
+  {
+    key:'price', label:'Live Price', sub:'current market',
+    tip:{
+      title:'Live Price',
+      body:'The current market price of the stock, fetched in real-time from Yahoo Finance. This is what you would pay if you bought the stock right now. Click "Refresh prices" to update.',
+      colors:[]
+    }
+  },
+  {
+    key:'ewa', label:'vs EWA', sub:'weighted 52w avg',
+    tip:{
+      title:'vs EWA — Exponentially Weighted Average',
+      body:'Shows how far the current price is from the stock\'s "normal" price over the past 52 weeks. Unlike a simple average, recent prices count MORE than older prices — so last week matters more than 6 months ago. This gives a smarter, more realistic baseline.\n\nA negative number means the stock is BELOW its normal level — a potential buying opportunity. A positive number means it\'s ABOVE normal — possibly overpriced.',
+      colors:[
+        {color:'var(--buy)', label:'Green: price is 5%+ below normal — dip territory'},
+        {color:'var(--watch)', label:'Yellow: price is near normal (−5% to +3%)'},
+        {color:'var(--sell)', label:'Red: price is above normal — not a bargain'},
+      ]
+    }
+  },
+  {
+    key:'support', label:'Support', sub:'bounce level',
+    tip:{
+      title:'Support Level',
+      body:'The price floor where this stock has historically stopped falling and bounced back up. Calculated by finding the price zone where the stock spent the most time in the bottom 40% of its yearly range.\n\nIf the stock is near its support level, buyers historically step in — making it a safer place to buy. The % shown is how far above support the stock currently is.',
+      colors:[
+        {color:'var(--buy)', label:'Green: within 5% above support — near the floor'},
+        {color:'var(--watch)', label:'Yellow: 5–15% above support'},
+        {color:'var(--sell)', label:'Red: more than 15% above support'},
+      ]
+    }
+  },
+  {
+    key:'target', label:'Analyst Target', sub:'consensus',
+    tip:{
+      title:'Analyst Consensus Price Target',
+      body:'The average price target set by professional Wall Street analysts who research this company full-time. This represents what they believe the stock is truly worth based on earnings, growth, and fundamentals.\n\nIf the current price is below this target, the stock may be undervalued. This is fetched live from Yahoo Finance.',
+      colors:[]
+    }
+  },
+  {
+    key:'upside', label:'Upside', sub:'to target',
+    tip:{
+      title:'Implied Upside to Analyst Target',
+      body:'The percentage gap between the current price and the analyst consensus target. For example, if a stock trades at $100 and analysts say it\'s worth $120, the upside is +20%.\n\nHigher upside = more room to grow if analysts are right. This is especially meaningful when combined with a dip — you\'re buying a discounted stock with strong recovery potential.',
+      colors:[
+        {color:'var(--buy)', label:'Green: 5%+ upside — analysts see significant value'},
+        {color:'var(--watch)', label:'Yellow: 0–5% upside — limited room to grow'},
+        {color:'var(--sell)', label:'Red: negative upside — stock may be overvalued'},
+      ]
+    }
+  },
+  {
+    key:'rsi', label:'RSI', sub:'14-day',
+    tip:{
+      title:'RSI — Relative Strength Index (14-day)',
+      body:'A momentum indicator from 0 to 100 that measures whether a stock is "oversold" (beaten down too much) or "overbought" (risen too fast).\n\nBelow 30 = Oversold. The market has been too harsh on this stock — historically it tends to bounce back. This is one of the strongest confirmation signals for your buy strategy.\n\nAbove 70 = Overbought. The stock has risen quickly — potential correction ahead.\n\n30–50 = Neutral zone.',
+      colors:[
+        {color:'var(--buy)', label:'Green: RSI below 30 — oversold, likely to bounce'},
+        {color:'var(--watch)', label:'Yellow: RSI 30–50 — neutral momentum'},
+        {color:'var(--sell)', label:'Red: RSI above 50 — not oversold yet'},
+      ]
+    }
+  },
+  {
+    key:'low52', label:'52w Low Dist.', sub:'distance from low',
+    tip:{
+      title:'Distance from 52-Week Low',
+      body:'How far the current price is above the lowest price the stock has traded at over the past 52 weeks (one year).\n\nWhen a stock is close to its yearly low, it is near maximum pessimism — which often represents a buying opportunity for fundamentally strong companies.\n\nA small % here means the stock is near its yearly floor.',
+      colors:[
+        {color:'var(--buy)', label:'Green: within 10% of yearly low — near the floor'},
+        {color:'var(--watch)', label:'Yellow: 10–25% above yearly low'},
+        {color:'var(--sell)', label:'Red: more than 25% above yearly low'},
+      ]
+    }
+  },
+  {
+    key:'score', label:'Score', sub:'buy signals',
+    tip:{
+      title:'Buy Score — Confluence of Signals (0–5)',
+      body:'The number of buy indicators that are all aligning at the same time. Each dot represents one signal:\n\n① Price is 5%+ below weighted average\n② RSI below 40 (momentum oversold)\n③ Price near support level\n④ Price below analyst target\n⑤ Price within 10% of 52-week low\n\nThe more dots lit up = the stronger the buying opportunity. 4–5 green dots is a rare, high-conviction signal. 1–2 dots = interesting but wait.',
+      colors:[
+        {color:'var(--buy)', label:'Green dots: 4–5 signals aligned — strong buy'},
+        {color:'var(--watch)', label:'Yellow dots: 2–3 signals aligned — watch closely'},
+        {color:'var(--sell)', label:'Red dots: 0–1 signals — not a buy yet'},
+      ]
+    }
+  },
+  {
+    key:'cost', label:'Your Cost', sub:'per share',
+    tip:{
+      title:'Your Purchase Price',
+      body:'The price per share you paid when you bought this stock. Click the ✎ edit button to enter this. Once set, the app calculates your exact profit or loss in real time.',
+      colors:[]
+    }
+  },
+  {
+    key:'qty', label:'Shares', sub:'quantity owned',
+    tip:{
+      title:'Number of Shares You Own',
+      body:'How many shares of this stock you currently hold. Enter this via the ✎ edit button. Combined with your cost and the live price, this gives your total dollar P&L.',
+      colors:[]
+    }
+  },
+  {
+    key:'pnl', label:'P&L ($)', sub:'dollar profit/loss',
+    tip:{
+      title:'Profit & Loss in Dollars',
+      body:'Your total dollar gain or loss on this position so far. Calculated as: (Live Price − Your Cost) × Number of Shares.\n\nExample: You bought 10 shares at $160. Stock is now $175. P&L = ($175 − $160) × 10 = +$150.',
+      colors:[
+        {color:'var(--buy)', label:'Green: you are in profit'},
+        {color:'var(--sell)', label:'Red: you are at a loss'},
+      ]
+    }
+  },
+  {
+    key:'pnlpct', label:'P&L (%)', sub:'percentage return',
+    tip:{
+      title:'Profit & Loss as a Percentage',
+      body:'Your return on this stock as a percentage of what you paid. Calculated as: (Live Price − Your Cost) / Your Cost × 100.\n\nThis tells you the efficiency of your investment regardless of position size.',
+      colors:[
+        {color:'var(--buy)', label:'Green: positive return'},
+        {color:'var(--sell)', label:'Red: negative return'},
+      ]
+    }
+  },
+  {
+    key:'signal', label:'Signal', sub:'recommendation',
+    tip:{
+      title:'Trading Signal',
+      body:'The final signal after running all 3 layers:\n\n★ CONFIRMED BUY — passed all 3 layers: technical dip + uptrend + healthy fundamentals. Highest conviction.\n\n▲ BUY — technical dip detected (legacy, before trend/fundamentals loaded).\n\n↓ TREND BLOCK — price dipped but 1yr AND 2yr trends are both falling. Do NOT buy — the "average" itself is declining. This is structural weakness, not a temporary dip.\n\n⚠ FUND. RISK — price dipped but fundamentals are failing (debt, PE, margins). Wait for the company to fix itself first.\n\n◉ WATCH — price down 5–9%, approaching buy zone. Stay alert.\n\n▼ SELL — you\'re up 8%+ (take profit) or down 12%+ (stop loss).\n\n— HOLD — price is normal, no action needed.',
+      colors:[
+        {color:'var(--buy)', label:'▲ BUY — entry point reached'},
+        {color:'var(--watch)', label:'◉ WATCH — approaching trigger'},
+        {color:'var(--sell)', label:'▼ SELL — exit position'},
+      ]
+    }
+  },
+  {
+    key:'pe', label:'P/E', sub:'price/earnings',
+    tip:{
+      title:'P/E Ratio — Price to Earnings',
+      body:'How much you pay per $1 of company profit. Shows "forward P/E" (based on next year\'s expected earnings) when available, otherwise trailing.\n\nThis is the main valuation check — our strategy requires stocks that aren\'t overpriced, so we only want companies with reasonable P/E ratios.\n\nUpdates every quarter when companies report earnings.',
+      colors:[
+        {color:'var(--buy)', label:'Green: P/E ≤ 20 — fairly priced'},
+        {color:'var(--watch)', label:'Yellow: P/E 20–28 — getting expensive'},
+        {color:'var(--sell)', label:'Red: P/E > 28 — overpriced vs earnings'},
+      ]
+    }
+  },
+  {
+    key:'de', label:'D/E', sub:'debt/equity',
+    tip:{
+      title:'Debt/Equity Ratio',
+      body:'How much debt the company carries relative to what it owns. A ratio of 1.0 means equal debt and equity. Higher = more leverage = more risk.\n\nOur strategy requires financially solid companies. If a stock dips and the company has too much debt, it may not recover — it could spiral into real trouble.\n\nNote: utility stocks (NEE, DUK, SO, ED, XEL) get more slack here — they structurally carry higher debt to fund infrastructure. Updates quarterly.',
+      colors:[
+        {color:'var(--buy)', label:'Green: D/E under limit — solid balance sheet'},
+        {color:'var(--watch)', label:'Yellow: elevated but manageable'},
+        {color:'var(--sell)', label:'Red: dangerously high debt — red flag'},
+      ]
+    }
+  },
+  {
+    key:'betacol', label:'Beta', sub:'volatility',
+    tip:{
+      title:'Beta — Stock Volatility vs Market',
+      body:'Measures how much this stock moves relative to the overall market. Beta of 1.0 = moves exactly with the market. Beta of 0.4 = moves 40% as much.\n\nFor your strategy you want LOW beta stocks — they move slowly and predictably, so a 10% dip stands out as unusual and is more likely to recover cleanly.\n\nThis updates periodically as market conditions change.',
+      colors:[
+        {color:'var(--buy)', label:'Green: Beta ≤ 0.5 — very stable, ideal'},
+        {color:'var(--watch)', label:'Yellow: Beta 0.5–0.8 — moderate'},
+        {color:'var(--sell)', label:'Red: Beta > 0.8 — too volatile for strategy'},
+      ]
+    }
+  },
+  {
+    key:'margin', label:'Margin', sub:'profit %',
+    tip:{
+      title:'Net Profit Margin',
+      body:'The percentage of revenue that becomes actual profit. If a company makes $100M in sales and $15M in profit, margin = 15%.\n\nThis confirms the company is genuinely profitable — not just surviving on borrowed money. A falling margin quarter over quarter can be an early warning sign. Updates every quarter.',
+      colors:[
+        {color:'var(--buy)', label:'Green: margin ≥ 8% — healthy and profitable'},
+        {color:'var(--watch)', label:'Yellow: margin 0–8% — thin but positive'},
+        {color:'var(--sell)', label:'Red: negative margin — losing money'},
+      ]
+    }
+  },
+  {
+    key:'health', label:'Health', sub:'fundamentals',
+    tip:{
+      title:'Overall Fundamental Health Score',
+      body:'A combined flag across all 4 fundamental metrics: P/E, Debt/Equity, Beta, and Profit Margin.\n\nIf ANY metric fails our criteria, this cell turns red and you\'ll see exactly which metric is the problem. This is your quarterly alert system — when a company\'s health score changes to yellow or red, re-evaluate whether it belongs in your watchlist.\n\nClick the ✎ edit button on a flagged row to review its details.',
+      colors:[
+        {color:'var(--buy)', label:'Green: all fundamentals healthy ✓'},
+        {color:'var(--watch)', label:'Yellow: one or more metrics getting stretched'},
+        {color:'var(--sell)', label:'Red: one or more metrics failing criteria — review'},
+      ]
+    }
+  },
+  {
+    key:'trend', label:'Trend', sub:'1yr / 2yr / 5yr',
+    tip:{
+      title:'Price Trend — 1 Year / 2 Year / 5 Year',
+      body:'Shows whether the stock has been rising or falling over three different time periods, calculated using linear regression on weekly price data.\n\n• 1 year — short-term momentum. Most relevant for deciding whether to buy a dip right now.\n• 2 year — medium-term direction. Confirms the 1yr trend is not a fluke.\n• 5 year — long-term structural health. A company rising for 5 years has proven it belongs in your watchlist.\n\nFor your strategy, the ideal stock shows ↑ Uptrend on all three. A stock showing ↓ on any period is a warning. ↓ on 5yr is a serious red flag — the company may be in structural decline.',
+      colors:[
+        {color:'var(--buy)', label:'↑ Uptrend — rising consistently'},
+        {color:'var(--watch)', label:'→ Flat — sideways, acceptable'},
+        {color:'var(--sell)', label:'↓ Downtrend — falling, avoid buying dips'},
+      ]
+    }
+  },
+  {key:'edit', label:'Edit', sub:'', tip:{title:'Edit Position', body:'Click ✎ to enter your purchase price and share count. Click ✕ to remove the stock from your watchlist.', colors:[]}}
+];
+
+// Build thead
+function buildThead() {
+  const tr = document.getElementById('thead-row');
+  tr.innerHTML = '';
+  COLUMNS.forEach(col => {
+    const th = document.createElement('th');
+    th.innerHTML = `
+      <div class="th-label">
+        ${col.label}
+        ${col.tip.title ? '<i class="info-icon">ⓘ</i>' : ''}
+      </div>
+      ${col.sub ? `<span class="th-sub">${col.sub}</span>` : ''}
+    `;
+    if (col.tip.title) {
+      th.addEventListener('mouseenter', e => showTooltip(e, col.tip));
+      th.addEventListener('mousemove', e => moveTooltip(e));
+      th.addEventListener('mouseleave', hideTooltip);
+    }
+    tr.appendChild(th);
+  });
+}
+
+// Tooltip logic
+const ttEl = document.getElementById('tooltip');
+const ttTitle = document.getElementById('tt-title');
+const ttBody = document.getElementById('tt-body');
+const ttColors = document.getElementById('tt-colors');
+
+function showTooltip(e, tip) {
+  ttTitle.textContent = tip.title;
+  ttBody.innerHTML = tip.body.replace(/\n/g, '<br>');
+  ttColors.innerHTML = '';
+  if (tip.colors && tip.colors.length) {
+    tip.colors.forEach(c => {
+      ttColors.innerHTML += `<div class="tt-color-row"><div class="tt-dot" style="background:${c.color}"></div><span>${c.label}</span></div>`;
+    });
+  }
+  moveTooltip(e);
+  ttEl.classList.add('visible');
+}
+function moveTooltip(e) {
+  const pad = 14;
+  const tw = 280, th_h = ttEl.offsetHeight || 200;
+  let x = e.clientX + pad;
+  let y = e.clientY + pad;
+  if (x + tw > window.innerWidth - 10) x = e.clientX - tw - pad;
+  if (y + th_h > window.innerHeight - 10) y = e.clientY - th_h - pad;
+  ttEl.style.left = x + 'px';
+  ttEl.style.top  = y + 'px';
+}
+function hideTooltip() { ttEl.classList.remove('visible'); }
+
+// ---- Data & proxies ----
+const PROXIES = [
+  t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1wk&range=5y')}`,
+  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?interval=1wk&range=5y')}`,
+  t => `https://thingproxy.freeboard.io/fetch/https://query1.finance.yahoo.com/v8/finance/chart/${t}?interval=1wk&range=5y`
+];
+const ANALYST_PROXIES = [
+  t => `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`,
+  t => `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols='+t+'&fields=trailingPE,forwardPE,debtToEquity,profitMargins,currentRatio,beta,targetMeanPrice')}`
+];
+
+function getFinnhubKey() { return localStorage.getItem('finnhub_key') || ''; }
+
+async function fetchFinnhub(ticker) {
+  const key = getFinnhubKey();
+  if (!key) return null;
+  const baseUrl = `https://finnhub.io/api/v1/stock/metric?symbol=${ticker}&metric=all&token=${key}`;
+  // Try direct first (works when Finnhub allows it), then through proxies
+  const urls = [
+    baseUrl,
+    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
+  ];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {
+        method: 'GET',
+        signal: AbortSignal.timeout(8000)
+        // No Content-Type header — avoids CORS preflight
+      });
+      if (!r.ok) continue;
+      const d = await r.json();
+      if (d && d.metric) return d;
+    } catch(e) { continue; }
+  }
+  return null;
+}
+
+const DEFAULT_STOCKS = [
+  {ticker:'JNJ', name:'Johnson & Johnson'},
+  {ticker:'KO',  name:'Coca-Cola'},
+  {ticker:'DUK', name:'Duke Energy'},
+  {ticker:'SO',  name:'Southern Company'},
+  {ticker:'NEE', name:'NextEra Energy'},
+  {ticker:'MCK', name:'McKesson'},
+  {ticker:'MCD', name:'McDonald\'s'},
+  {ticker:'ABBV',name:'AbbVie'},
+  {ticker:'SYY', name:'Sysco'},
+  {ticker:'MDT', name:'Medtronic'},
+  {ticker:'ED',  name:'Consolidated Edison'},
+  {ticker:'XEL', name:'Xcel Energy'},
+  {ticker:'BDX', name:'Becton Dickinson'},
+  {ticker:'ITW', name:'Illinois Tool Works'},
+];
+
+let stocks = [];
+let editIdx = null;
+
+function blankStock(ticker, name) {
+  return {ticker, name:name||ticker, cost:null, qty:null, customBaseline:null,
+          livePrice:null, ewa:null, support:null, analystTarget:null,
+          rsi:null, week52Low:null, week52High:null,
+          trend1yr:null, trend2yr:null, trend5yr:null,
+          // fundamentals
+          peRatio:null, forwardPE:null, debtEquity:null,
+          beta:null, profitMargin:null, currentRatio:null,
+          hist:[], loading:false, error:false};
+}
+
+function loadStocks() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      stocks = JSON.parse(saved).map(s => ({...blankStock(s.ticker,s.name), cost:s.cost||null, qty:s.qty||null, customBaseline:s.customBaseline||null}));
+    } else {
+      stocks = DEFAULT_STOCKS.map(s => blankStock(s.ticker, s.name));
+    }
+  } catch(e) { stocks = DEFAULT_STOCKS.map(s => blankStock(s.ticker,s.name)); }
+}
+
+function saveStocks() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(
+    stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,customBaseline:s.customBaseline}))
+  ));
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(stocks.map(s=>({ticker:s.ticker,name:s.name,cost:s.cost,qty:s.qty,customBaseline:s.customBaseline})),null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='watchlist-portfolio.json'; a.click();
+  showToast('Portfolio exported!');
+}
+
+function importData(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      parsed.forEach(item => {
+        const ex = stocks.find(s=>s.ticker===item.ticker);
+        if (ex) { ex.cost=item.cost; ex.qty=item.qty; ex.customBaseline=item.customBaseline; }
+        else stocks.push({...blankStock(item.ticker,item.name), cost:item.cost||null, qty:item.qty||null, customBaseline:item.customBaseline||null});
+      });
+      saveStocks(); render(); updateSummary(); updateAI(); showToast('Portfolio imported!');
+    } catch(err) { showToast('Import failed'); }
+  };
+  reader.readAsText(file); event.target.value='';
+}
+
+async function fetchWithFallback(proxies, ticker) {
+  for (let i=0; i<proxies.length; i++) {
+    try {
+      const r = await fetch(proxies[i](ticker), {signal:AbortSignal.timeout(9000)});
+      if (!r.ok) throw new Error('bad');
+      const d = await r.json();
+      return d;
+    } catch(e) { continue; }
+  }
+  return null;
+}
+
+function calcEWA(closes) {
+  if (!closes||closes.length===0) return null;
+  const alpha = 2/(closes.length+1);
+  let ewa = closes[0];
+  for (let i=1;i<closes.length;i++) ewa = alpha*closes[i]+(1-alpha)*ewa;
+  return ewa;
+}
+
+function calcRSI(closes, period=14) {
+  if (!closes||closes.length<period+1) return null;
+  const recent = closes.slice(-period-1);
+  let gains=0,losses=0;
+  for (let i=1;i<recent.length;i++) {
+    const diff=recent[i]-recent[i-1];
+    if(diff>0)gains+=diff; else losses+=Math.abs(diff);
+  }
+  const ag=gains/period, al=losses/period;
+  if(al===0)return 100;
+  return 100-(100/(1+ag/al));
+}
+
+function calcSupport(closes) {
+  if (!closes||closes.length<20) return null;
+  const recent=closes.slice(-252);
+  const min=Math.min(...recent), max=Math.max(...recent);
+  const range=max-min; if(range===0)return min;
+  const buckets=20, bs=range/buckets;
+  const counts=new Array(buckets).fill(0);
+  recent.forEach(p=>{ const idx=Math.min(Math.floor((p-min)/bs),buckets-1); counts[idx]++; });
+  let sb=0, mc=0;
+  for(let i=0;i<buckets*0.4;i++) if(counts[i]>mc){mc=counts[i];sb=i;}
+  return min+(sb+0.5)*bs;
+}
+
+// Linear regression slope — positive = uptrend, negative = downtrend
+function calcTrend(closes) {
+  if (!closes || closes.length < 10) return null;
+  const n = closes.length;
+  let sumX=0, sumY=0, sumXY=0, sumX2=0;
+  for (let i=0; i<n; i++) { sumX+=i; sumY+=closes[i]; sumXY+=i*closes[i]; sumX2+=i*i; }
+  const slope = (n*sumXY - sumX*sumY) / (n*sumX2 - sumX*sumX);
+  // Normalize: slope as % of mean price per day
+  const mean = sumY/n;
+  return mean > 0 ? (slope/mean)*100 : null;
+}
+
+// Classify trend over a slice of history
+function getTrendLabel(closes, days) {
+  if (!closes || closes.length < days*0.5) return null;
+  const slice = closes.slice(-Math.min(days, closes.length));
+  const slopePct = calcTrend(slice);
+  if (slopePct === null) return null;
+  // annualized: slope is per week, multiply by 52 weeks
+  const annualized = slopePct * 52;
+  if (annualized > 5)  return 'up';
+  if (annualized < -3) return 'down';
+  return 'flat';
+}
+
+async function fetchPrice(stock) {
+  stock.loading=true; stock.error=false;
+  try {
+    const d = await fetchWithFallback(PROXIES, stock.ticker);
+    if (!d||!d.chart||!d.chart.result||!d.chart.result[0]) throw new Error('no data');
+    const meta=d.chart.result[0].meta;
+    const closes=(d.chart.result[0].indicators.quote[0].close||[]).filter(v=>v!=null&&!isNaN(v));
+    stock.livePrice=meta.regularMarketPrice||closes[closes.length-1];
+    stock.hist=closes;
+    stock.ewa=stock.customBaseline||calcEWA(closes.slice(-52)); // last 52 weeks for EWA
+    stock.rsi=calcRSI(closes.slice(-20)); // last 20 weeks (~14 trading days equiv)
+    stock.support=calcSupport(closes);
+    stock.week52Low=meta.fiftyTwoWeekLow||Math.min(...closes.slice(-52));
+    stock.week52High=meta.fiftyTwoWeekHigh||Math.max(...closes.slice(-52));
+
+    // Trend calculations: weekly data — 1yr=52w, 2yr=104w, 5yr=all
+    stock.trend1yr = getTrendLabel(closes, 52);
+    stock.trend2yr = getTrendLabel(closes, 104);
+    stock.trend5yr = getTrendLabel(closes, closes.length);
+
+    // Fundamentals from meta — Yahoo includes these in chart API
+    if (meta.trailingPE  != null) stock.peRatio      = meta.trailingPE;
+    if (meta.forwardPE   != null) stock.forwardPE    = meta.forwardPE;
+    if (meta.beta        != null) stock.beta         = meta.beta;
+    // chartPreviousClose and other meta fields vary — we get what we can
+    // D/E and margin come from quoteSummary — keep trying that separately
+
+    if(meta.longName&&stock.name===stock.ticker)stock.name=meta.longName;
+    stock.loading=false;
+  } catch(e) { stock.livePrice=null;stock.loading=false;stock.error=true; }
+}
+
+async function fetchFinnhubTarget(ticker) {
+  const key = getFinnhubKey();
+  if (!key) return null;
+  const baseUrl = `https://finnhub.io/api/v1/stock/price-target?symbol=${ticker}&token=${key}`;
+  const urls = [
+    baseUrl,
+    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
+  ];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {method:'GET', signal:AbortSignal.timeout(8000)});
+      if (!r.ok) continue;
+      const d = await r.json();
+      // targetMean is the consensus average analyst price target
+      if (d && d.targetMean != null && d.targetMean > 0) return d.targetMean;
+    } catch(e) { continue; }
+  }
+  return null;
+}
+
+async function fetchAnalyst(stock) {
+  // Try Finnhub first (most reliable, no CORS issues)
+  const fh = await fetchFinnhub(stock.ticker);
+  if (fh && fh.metric) {
+    const m = fh.metric;
+    if (m.peAnnual        != null && !stock.peRatio)  stock.peRatio      = m.peAnnual;
+    if (m.peNormalizedAnnual != null && !stock.peRatio) stock.peRatio    = m.peNormalizedAnnual;
+    if (m.peTTM           != null && !stock.peRatio)  stock.peRatio      = m.peTTM;
+    if (m.forwardPE       != null) stock.forwardPE   = m.forwardPE;
+    if (m.beta            != null && !stock.beta) stock.beta             = m.beta;
+    // D/E — exact field names confirmed from live Finnhub response
+    const de = m['totalDebt/totalEquityAnnual'] ?? m['longTermDebt/equityAnnual'] ?? m['totalDebt/totalEquityQuarterly'] ?? m['longTermDebt/equityQuarterly'] ?? null;
+    if (de != null) stock.debtEquity = de;
+    if (m.netProfitMarginAnnual != null) stock.profitMargin = m.netProfitMarginAnnual;
+    if (m.currentRatioAnnual    != null) stock.currentRatio = m.currentRatioAnnual;
+    // Always fetch price target from dedicated endpoint — more reliable than metric.targetPrice
+    const pt = await fetchFinnhubTarget(stock.ticker);
+    if (pt) stock.analystTarget = pt;
+    else if (m.targetPrice != null) stock.analystTarget = m.targetPrice;
+    return;
+  }
+  // Fallback: Yahoo proxy
+  try {
+    const d = await fetchWithFallback(ANALYST_PROXIES, stock.ticker);
+    if (!d) return;
+    const q7 = d?.quoteResponse?.result?.[0];
+    if (q7) {
+      if (q7.targetMeanPrice != null) stock.analystTarget = q7.targetMeanPrice;
+      if (q7.trailingPE      != null && !stock.peRatio) stock.peRatio   = q7.trailingPE;
+      if (q7.forwardPE       != null) stock.forwardPE  = q7.forwardPE;
+      if (q7.debtToEquity    != null) stock.debtEquity = q7.debtToEquity / 100;
+      if (q7.profitMargins   != null) stock.profitMargin = q7.profitMargins * 100;
+      if (q7.currentRatio    != null) stock.currentRatio = q7.currentRatio;
+      if (q7.beta            != null && !stock.beta) stock.beta = q7.beta;
+    }
+  } catch(e) {}
+}
+
+async function refreshAll() {
+  const btn=document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  document.getElementById('errNote').textContent='';
+  stocks.forEach(s=>{s.loading=true;s.error=false;});
+  render();
+  await Promise.all(stocks.map(async s=>{await fetchPrice(s);await fetchAnalyst(s);}));
+  render();updateSummary();updateAI();
+  btn.classList.remove('spinning');
+  const errCount=stocks.filter(s=>s.error).length;
+  if(errCount>0)document.getElementById('errNote').textContent=errCount+' ticker(s) unavailable. Yahoo Finance may be rate-limiting — try again in a minute.';
+  if(!getFinnhubKey()) document.getElementById('errNote').textContent = (document.getElementById('errNote').textContent ? ' | ' : '') + '⚠ P/E, D/E, Beta & Margin columns need a free Finnhub API key — paste it in the box top-right. Get one free at finnhub.io/register (30 seconds).';
+  document.getElementById('last-update').textContent='Last updated: '+new Date().toLocaleTimeString();
+}
+
+// Check each fundamental against our entry criteria
+// Returns array of {metric, value, status:'ok'|'warn'|'fail', note}
+function getFundamentalFlags(s) {
+  const flags = [];
+  // PE ratio — forward preferred, trailing fallback
+  const pe = s.forwardPE || s.peRatio;
+  if (pe !== null && pe !== undefined) {
+    const st = pe <= 20 ? 'ok' : pe <= 28 ? 'warn' : 'fail';
+    flags.push({metric:'P/E', value:fmt(pe,1), status:st,
+      note: st==='ok'?'Reasonably priced': st==='warn'?'Getting expensive':'Overpriced vs earnings'});
+  }
+  // Debt/Equity — utilities get more slack (up to 2.0), others up to 1.0
+  if (s.debtEquity !== null && s.debtEquity !== undefined) {
+    const isUtility = ['DUK','SO','NEE','ED','XEL'].includes(s.ticker);
+    const warnLimit = isUtility ? 2.0 : 1.0;
+    const failLimit = isUtility ? 3.0 : 2.0;
+    const st = s.debtEquity <= warnLimit ? 'ok' : s.debtEquity <= failLimit ? 'warn' : 'fail';
+    flags.push({metric:'D/E', value:fmt(s.debtEquity,2), status:st,
+      note: st==='ok'?'Debt under control': st==='warn'?'Elevated debt':'Dangerously high debt'});
+  }
+  // Beta — we want under 0.8
+  if (s.beta !== null && s.beta !== undefined) {
+    const st = s.beta <= 0.5 ? 'ok' : s.beta <= 0.8 ? 'warn' : 'fail';
+    flags.push({metric:'Beta', value:fmt(s.beta,2), status:st,
+      note: st==='ok'?'Low volatility — ideal': st==='warn'?'Moderate volatility':'Too volatile for strategy'});
+  }
+  // Profit margin — want positive and healthy (>8%)
+  if (s.profitMargin !== null && s.profitMargin !== undefined) {
+    const st = s.profitMargin >= 8 ? 'ok' : s.profitMargin >= 0 ? 'warn' : 'fail';
+    flags.push({metric:'Margin', value:fmt(s.profitMargin,1)+'%', status:st,
+      note: st==='ok'?'Healthy profit margin': st==='warn'?'Thin margins':'Losing money'});
+  }
+  // Current ratio — liquidity, want > 1
+  if (s.currentRatio !== null && s.currentRatio !== undefined) {
+    const st = s.currentRatio >= 1.2 ? 'ok' : s.currentRatio >= 0.8 ? 'warn' : 'fail';
+    flags.push({metric:'Liquidity', value:fmt(s.currentRatio,2), status:st,
+      note: st==='ok'?'Good liquidity': st==='warn'?'Tight liquidity':'May struggle to pay bills'});
+  }
+  return flags;
+}
+
+// Overall fundamental health: 'ok' | 'warn' | 'fail'
+function getFundamentalHealth(s) {
+  const flags = getFundamentalFlags(s);
+  if (!flags.length) return null;
+  if (flags.some(f=>f.status==='fail')) return 'fail';
+  if (flags.some(f=>f.status==='warn')) return 'warn';
+  return 'ok';
+}
+
+// Layer 1: Technical — price vs weighted average
+function getTechnicalSignal(s) {
+  if(!s.livePrice) return 'hold';
+  const baseline = s.ewa || s.customBaseline;
+  if(!baseline) return 'hold';
+  const chg = (s.livePrice - baseline) / baseline * 100;
+  if(s.cost && s.livePrice) {
+    const g = (s.livePrice - s.cost) / s.cost * 100;
+    if(g >= 8) return 'sell';
+    if(g <= -12) return 'sell';
+  }
+  if(chg <= -9) return 'buy';
+  if(chg >= 6 && s.cost) return 'sell';
+  if(chg <= -5) return 'watch';
+  return 'hold';
+}
+
+// Layer 2: Trend — 1yr and 2yr must not both be down
+function getTrendOk(s) {
+  if(!s.trend1yr && !s.trend2yr) return true; // not loaded yet, don't block
+  if(s.trend1yr === 'down' && s.trend2yr === 'down') return false; // both down = blocked
+  return true;
+}
+
+// Layer 3: Fundamentals — no failing metrics
+function getFundamentalsOk(s) {
+  const health = getFundamentalHealth(s);
+  if(health === 'fail') return false;
+  return true;
+}
+
+// Combined 3-layer final signal
+function getSignal(s) {
+  const tech = getTechnicalSignal(s);
+  if(tech === 'sell') return 'sell';
+  if(tech === 'hold') return 'hold';
+  if(tech === 'watch') {
+    if(!getTrendOk(s)) return 'trendblock';
+    return 'watch';
+  }
+  // tech === 'buy' — run all three layers
+  if(!getTrendOk(s)) return 'trendblock';
+  if(!getFundamentalsOk(s)) return 'fundblock';
+  return 'confirmed'; // passed all 3 layers
+}
+
+function getBuyScore(s) {
+  if(!s.livePrice)return 0;
+  let score=0;
+  const baseline=s.ewa;
+  if(baseline&&(s.livePrice-baseline)/baseline*100<=-5)score++;
+  if(s.rsi!==null&&s.rsi<40)score++;
+  if(s.support&&s.livePrice<=s.support*1.05)score++;
+  if(s.analystTarget&&s.livePrice<s.analystTarget*0.95)score++;
+  if(s.week52Low&&(s.livePrice-s.week52Low)/s.week52Low*100<10)score++;
+  return score;
+}
+
+function fmt(n,d=2){return(n==null||isNaN(n))?'—':Number(n).toFixed(d);}
+function fmtC(n){if(n==null)return'—';return(n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});}
+
+function colorCell(value, displayText, goodThresh, warnThresh, higherIsBetter=false) {
+  if(value===null||value===undefined||isNaN(value))return'<span style="color:var(--muted)">—</span>';
+  let cls;
+  if(!higherIsBetter){
+    cls=value<=goodThresh?'cell-good':value<=warnThresh?'cell-warn':'cell-bad';
+  } else {
+    cls=value>=goodThresh?'cell-good':value>=warnThresh?'cell-warn':'cell-bad';
+  }
+  return`<span class="${cls}">${displayText}</span>`;
+}
+
+function render() {
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML='';
+  stocks.forEach((s,i)=>{
+    const baseline=s.ewa||s.customBaseline;
+    const chgEwa=(s.livePrice&&baseline)?(s.livePrice-baseline)/baseline*100:null;
+    const distSupport=(s.livePrice&&s.support)?(s.livePrice-s.support)/s.support*100:null;
+    const upside=(s.livePrice&&s.analystTarget)?(s.analystTarget-s.livePrice)/s.livePrice*100:null;
+    const dist52Low=(s.livePrice&&s.week52Low)?(s.livePrice-s.week52Low)/s.week52Low*100:null;
+    const pnl=(s.cost&&s.qty&&s.livePrice)?(s.livePrice-s.cost)*s.qty:null;
+    const pnlPct=(s.cost&&s.livePrice)?(s.livePrice-s.cost)/s.cost*100:null;
+    const sig=getSignal(s);
+    const score=getBuyScore(s);
+
+    const ewaPct=chgEwa!==null?(chgEwa>=0?'+':'')+fmt(chgEwa,1)+'%':'—';
+    const ewaPrice=baseline?`<span style="color:var(--muted);font-size:10px;font-family:var(--font-mono);display:block;margin-top:2px">avg $${fmt(baseline)}</span>`:'';
+    const ewaCell=colorCell(chgEwa,ewaPct,-5,3)+ewaPrice;
+    const supportVal=s.support?`<span class="cell-neutral">$${fmt(s.support)}</span>${distSupport!==null?' '+colorCell(distSupport,'+'+fmt(distSupport,1)+'%',5,15):''}`:null;
+    const upsideCell=colorCell(upside,(upside!==null?(upside>=0?'+':'')+fmt(upside,1)+'%':'—'),5,0,true);
+    const rsiCell=colorCell(s.rsi,s.rsi!==null?fmt(s.rsi,0):'—',30,50);
+    const lowPrice = s.week52Low ? `<span style="color:var(--muted);font-size:10px;font-family:var(--font-mono);display:block;margin-top:2px">low $${fmt(s.week52Low)}</span>` : '';
+    const lowCell = colorCell(dist52Low, dist52Low!==null?'+'+fmt(dist52Low,1)+'%':'—', 10, 25) + lowPrice;
+
+    const dotColor=score>=4?'on-buy':score>=2?'on-warn':'on-sell';
+    let dotsHtml='<div class="score-dots">';
+    for(let d=0;d<5;d++)dotsHtml+=`<div class="dot ${d<score?dotColor:'off'}"></div>`;
+    dotsHtml+='</div>';
+
+    const pills={
+      confirmed:`<span class="pill p-confirmed">★ CONFIRMED BUY</span>`,
+      buy:`<span class="pill p-buy">▲ BUY</span>`,
+      sell:`<span class="pill p-sell">▼ SELL</span>`,
+      watch:`<span class="pill p-watch">◉ WATCH</span>`,
+      trendblock:`<span class="pill p-trendblock">↓ TREND BLOCK</span>`,
+      fundblock:`<span class="pill p-fundblock">⚠ FUND. RISK</span>`,
+      hold:`<span class="pill p-hold">— HOLD</span>`
+    };
+
+    const priceCell=s.loading?'<span class="loading-txt">loading…</span>':s.error?'<span style="color:var(--sell);font-size:11px">unavailable</span>':`<span class="cell-neutral">$${fmt(s.livePrice)}</span>`;
+
+    // Fundamentals
+    const pe = s.forwardPE || s.peRatio;
+    const peCell = colorCell(pe, pe ? fmt(pe,1) : '—', 20, 28);
+    const deCell = (() => {
+      if (s.debtEquity === null || s.debtEquity === undefined) return '<span style="color:var(--muted)">—</span>';
+      const isUtility = ['DUK','SO','NEE','ED','XEL'].includes(s.ticker);
+      const wl = isUtility ? 2.0 : 1.0, fl = isUtility ? 3.0 : 2.0;
+      const cls = s.debtEquity <= wl ? 'cell-good' : s.debtEquity <= fl ? 'cell-warn' : 'cell-bad';
+      return `<span class="${cls}">${fmt(s.debtEquity,2)}</span>`;
+    })();
+    const betaCell = colorCell(s.beta, s.beta ? fmt(s.beta,2) : '—', 0.5, 0.8);
+    const marginCell = colorCell(s.profitMargin, s.profitMargin !== null ? fmt(s.profitMargin,1)+'%' : '—', 8, 0, true);
+
+    const flags = getFundamentalFlags(s);
+    const health = getFundamentalHealth(s);
+    let healthCell = '<span style="color:var(--muted)">—</span>';
+    if (health && s.livePrice) {
+      const failFlags = flags.filter(f=>f.status==='fail').map(f=>f.metric);
+      const warnFlags = flags.filter(f=>f.status==='warn').map(f=>f.metric);
+      if (health==='ok') healthCell = '<span class="cell-good">✓ Healthy</span>';
+      else if (health==='warn') healthCell = `<span class="cell-warn">⚠ ${warnFlags.join(', ')}</span>`;
+      else healthCell = `<span class="cell-bad">✕ ${failFlags.join(', ')}</span>`;
+    }
+
+    const trendIcon = t => !t ? '—' :
+      t==='up'   ? '<span style="color:var(--buy)">↑</span>' :
+      t==='down' ? '<span style="color:var(--sell)">↓</span>' :
+                   '<span style="color:var(--watch)">→</span>';
+    const trendLabel = t => !t ? '' :
+      t==='up' ? 'color:var(--buy)' : t==='down' ? 'color:var(--sell)' : 'color:var(--watch)';
+
+    const trendCell = !s.livePrice ? '<span style="color:var(--muted)">—</span>' : `
+      <div style="display:flex;flex-direction:column;gap:2px;font-family:var(--font-mono);font-size:10px;line-height:1.4">
+        <span style="${trendLabel(s.trend1yr)}">${trendIcon(s.trend1yr)} 1yr</span>
+        <span style="${trendLabel(s.trend2yr)}">${trendIcon(s.trend2yr)} 2yr</span>
+        <span style="${trendLabel(s.trend5yr)}">${trendIcon(s.trend5yr)} 5yr</span>
+      </div>`;
+
+    const isDowntrend = s.trend1yr === 'down' || s.trend5yr === 'down';
+
+    const isFailing = health === 'fail';
+    const tr=document.createElement('tr');
+    if (isDowntrend && isFailing) tr.style.cssText='border-left:3px solid var(--sell);opacity:0.7;';
+    else if (isDowntrend) tr.style.cssText='border-left:3px solid var(--sell);opacity:0.78;';
+    else if (isFailing)   tr.style.cssText='border-left:3px solid var(--watch);';
+    tr.innerHTML=`
+      <td class="td-ticker">${s.ticker}</td>
+      <td class="td-name">${s.name}</td>
+      <td>${priceCell}</td>
+      <td>${ewaCell}</td>
+      <td>${supportVal||'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${s.analystTarget?`<span class="cell-neutral">$${fmt(s.analystTarget)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${upsideCell}</td>
+      <td>${rsiCell}</td>
+      <td>${lowCell}</td>
+      <td>${dotsHtml}</td>
+      <td class="td-name">${s.cost?'$'+fmt(s.cost):'<span style="color:var(--muted)">—</span>'}</td>
+      <td class="td-name">${s.qty||'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${pnl!=null?`<span class="${pnl>=0?'cell-good':'cell-bad'}">${fmtC(pnl)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${pnlPct!=null?`<span class="${pnlPct>=0?'cell-good':'cell-bad'}">${pnlPct>=0?'+':''}${fmt(pnlPct,1)}%</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${pills[sig]}</td>
+      <td>${peCell}</td>
+      <td>${deCell}</td>
+      <td>${betaCell}</td>
+      <td>${marginCell}</td>
+      <td>${healthCell}</td>
+      <td>${trendCell}</td>
+      <td style="white-space:nowrap">
+        <button class="icon-btn edit" onclick="openModal(${i})" title="Edit">✎</button>
+        <button class="icon-btn del" onclick="removeStock(${i})" title="Remove">✕</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateSummary(){
+  let tv=0,tc=0,hasp=false,buys=0,sells=0;
+  stocks.forEach(s=>{
+    const sig=getSignal(s);
+    if(sig==='confirmed'||sig==='buy')buys++;if(sig==='sell')sells++;
+    if(s.cost&&s.qty&&s.livePrice){tv+=s.livePrice*s.qty;tc+=s.cost*s.qty;hasp=true;}
+  });
+  const pnl=tv-tc;
+  document.getElementById('sum-value').textContent=hasp?'$'+tv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+  const pel=document.getElementById('sum-pnl');
+  pel.textContent=hasp?fmtC(pnl):'—';
+  pel.className='val '+(hasp?(pnl>=0?'pos':'neg'):'neutral');
+  document.getElementById('sum-buys').textContent=buys;
+  document.getElementById('sum-sells').textContent=sells;
+}
+
+function updateAI(){
+  const el=document.getElementById('aiMsg'),chips=document.getElementById('aiChips');
+  if(!stocks.some(s=>s.livePrice)){el.innerHTML='Refresh prices to get live recommendations.';chips.innerHTML='';return;}
+  const lines=[];
+  stocks.forEach(s=>{
+    if(!s.livePrice)return;
+    const sig=getSignal(s);const score=getBuyScore(s);
+    const health=getFundamentalHealth(s);
+    const flags=getFundamentalFlags(s);
+    const chg=s.ewa?((s.livePrice-s.ewa)/s.ewa*100).toFixed(1):null;
+    // Fundamental deterioration warning — even if no trade signal
+    if(health==='fail'){
+      const failList=flags.filter(f=>f.status==='fail').map(f=>`${f.metric} (${f.value}: ${f.note})`).join(', ');
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">✕ FUNDAMENTALS FAILING.</span> ${failList}. Consider removing from watchlist.`);
+    } else if(health==='warn' && sig!=='buy'){
+      const warnList=flags.filter(f=>f.status==='warn').map(f=>`${f.metric} (${f.value})`).join(', ');
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">⚠ Fundamentals stretched:</span> ${warnList}. Monitor closely.`);
+    }
+    if(sig==='confirmed'){
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--buy);font-weight:600">★ CONFIRMED BUY — all 3 layers passed.</span> Down ${chg}% from weighted average, uptrending, fundamentals healthy. Score: ${score}/5.${s.rsi&&s.rsi<35?' RSI '+s.rsi.toFixed(0)+' confirms oversold.':''}${s.analystTarget?' Analyst target $'+s.analystTarget.toFixed(0)+'.':''} ${s.cost?'You already hold a position.':'No position yet — highest conviction entry signal.'}`);
+    } else if(sig==='trendblock'){
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">↓ TREND BLOCK.</span> Price dipped ${chg}% but both 1yr and 2yr trends are falling. Do NOT buy — this is not a temporary dip, the stock is in structural decline. Consider removing it from your watchlist.`);
+    } else if(sig==='fundblock'){
+      const failList=flags.filter(f=>f.status==='fail').map(f=>f.metric).join(', ');
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">⚠ FUND. RISK.</span> Price dipped ${chg}% but fundamentals are failing (${failList}). Wait for the company to fix its balance sheet before buying this dip.`);
+    } else if(sig==='sell'){
+      const gp=s.cost?((s.livePrice-s.cost)/s.cost*100).toFixed(1):null;
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--sell);font-weight:600">▼ SELL SIGNAL.</span>${gp!=null?' You are '+(gp>=0?'up':'down')+' '+Math.abs(gp)+'% on this position.':''} Consider ${gp>=0?'taking profit':'limiting your loss'}.`);
+    } else if(sig==='watch'&&score>=2){
+      lines.push(`<span class="tk">${s.ticker}</span> — <span style="color:var(--watch);font-weight:600">◉ WATCH.</span> Down ${chg}% — approaching buy zone. Score ${score}/5.${s.rsi?' RSI '+s.rsi.toFixed(0)+'.':''}`);
+    }
+  });
+  if(!lines.length)lines.push('All stocks are trading within normal ranges. No action needed — hold positions and wait for a dip. <span style="color:var(--muted);font-size:12px">Tip: hover over any column header ⓘ to learn what each indicator means.</span>');
+  el.innerHTML=lines.join('<br><br>');
+  chips.innerHTML='';
+
+  // Build a summary of current watchlist state for context
+  const buyStocks = stocks.filter(s=>['confirmed','buy'].includes(getSignal(s))).map(s=>s.ticker).join(', ') || 'none';
+  const watchStocks = stocks.filter(s=>getSignal(s)==='watch').map(s=>s.ticker).join(', ') || 'none';
+  const topDip = stocks.filter(s=>s.livePrice&&s.ewa).sort((a,b)=>{
+    const ca=(a.livePrice-a.ewa)/a.ewa, cb=(b.livePrice-b.ewa)/b.ewa;
+    return ca-cb;
+  })[0];
+
+  const questions = [
+    {
+      label: 'Why is this stock dipping?',
+      prompt: `I'm using a mean reversion trading strategy. My watchlist currently shows these BUY signals: ${buyStocks}. These are WATCH signals: ${watchStocks}. ${topDip ? `The biggest dip right now is ${topDip.ticker} (${((topDip.livePrice-topDip.ewa)/topDip.ewa*100).toFixed(1)}% below its weighted average). ` : ''}Can you search for recent news and explain why ${topDip ? topDip.ticker : 'these stocks'} is dipping? Is it a temporary overreaction or something more serious?`
+    },
+    {
+      label: 'Is this dip news-driven?',
+      prompt: `I'm a mean reversion trader. My current BUY signals are: ${buyStocks}. My WATCH signals are: ${watchStocks}. For each of these, can you search for the latest news and tell me: (1) is the dip caused by temporary bad news like a weak earnings quarter, market overreaction, or sector rotation? Or (2) is there something fundamentally wrong with the company? I only want to buy dips that are temporary overreactions.`
+    },
+    {
+      label: 'How to size my position?',
+      prompt: `I'm a mean reversion trader with a strategy of buying dips of 10%+ on fundamentally stable stocks and selling when they recover. My current BUY signals are: ${buyStocks}. Can you explain how I should size my position for these trades? Specifically: what % of my portfolio should I put into one trade, should I buy all at once or in stages, and what's a sensible stop-loss level?`
+    }
+  ];
+
+  questions.forEach(q => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = q.label;
+    b.onclick = () => {
+      // Copy prompt to clipboard and show instructions
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(q.prompt).then(() => {
+          showToast('Question copied! Paste it into a new Claude chat.');
+        }).catch(() => {
+          showToast('Open Claude and ask: ' + q.label);
+        });
+      } else {
+        showToast('Open Claude.ai and ask: ' + q.label);
+      }
+    };
+    chips.appendChild(b);
+  });
+
+  // Add a direct Claude link button
+  const openBtn = document.createElement('a');
+  openBtn.href = 'https://claude.ai';
+  openBtn.target = '_blank';
+  openBtn.className = 'chip';
+  openBtn.style.cssText = 'color:var(--accent);border-color:rgba(124,106,247,.3);text-decoration:none;';
+  openBtn.textContent = '↗ Open Claude';
+  chips.appendChild(openBtn);
+}
+
+function openModal(idx){
+  editIdx=idx;const s=stocks[idx];
+  document.getElementById('modal-title').textContent='Edit — '+s.ticker;
+  document.getElementById('modal-sub').textContent=s.name;
+  document.getElementById('inp-cost').value=s.cost||'';
+  document.getElementById('inp-qty').value=s.qty||'';
+  document.getElementById('inp-base').value=s.customBaseline||'';
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){document.getElementById('modal').style.display='none';editIdx=null;}
+function saveModal(){
+  if(editIdx===null)return;
+  const cost=parseFloat(document.getElementById('inp-cost').value);
+  const qty=parseFloat(document.getElementById('inp-qty').value);
+  const base=parseFloat(document.getElementById('inp-base').value);
+  const s=stocks[editIdx];
+  s.cost=(!isNaN(cost)&&cost>0)?cost:null;
+  s.qty=(!isNaN(qty)&&qty>0)?qty:null;
+  s.customBaseline=(!isNaN(base)&&base>0)?base:null;
+  if(s.customBaseline)s.ewa=s.customBaseline;
+  saveStocks();closeModal();render();updateSummary();updateAI();
+  showToast('Position saved!');
+}
+
+function removeStock(idx){
+  if(!confirm('Remove '+stocks[idx].ticker+'?'))return;
+  stocks.splice(idx,1);saveStocks();render();updateSummary();updateAI();
+}
+
+async function addTicker(){
+  const inp=document.getElementById('addInput');
+  const ticker=inp.value.trim().toUpperCase();
+  if(!ticker||stocks.find(s=>s.ticker===ticker)){inp.value='';return;}
+  const s=blankStock(ticker);stocks.push(s);inp.value='';
+  saveStocks();render();
+  await fetchPrice(s);await fetchAnalyst(s);
+  saveStocks();render();updateSummary();updateAI();
+}
+
+function saveFinnhubKey(val) {
+  if (val) localStorage.setItem('finnhub_key', val);
+  else localStorage.removeItem('finnhub_key');
+}
+
+function closeBanner(){document.getElementById('banner').style.display='none';localStorage.setItem(BANNER_KEY,'1');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+buildThead();
+loadStocks();
+if(localStorage.getItem(BANNER_KEY))document.getElementById('banner').style.display='none';
+const savedKey = getFinnhubKey();
+if (savedKey) document.getElementById('fh-key-input').value = savedKey;
+render();updateSummary();
+</script>
+</body>
+</html>

@@ -753,6 +753,27 @@ async function fetchPrice(stock) {
   } catch(e) { stock.livePrice=null;stock.loading=false;stock.error=true; }
 }
 
+async function fetchFinnhubTarget(ticker) {
+  const key = getFinnhubKey();
+  if (!key) return null;
+  const baseUrl = `https://finnhub.io/api/v1/stock/price-target?symbol=${ticker}&token=${key}`;
+  const urls = [
+    baseUrl,
+    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
+  ];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {method:'GET', signal:AbortSignal.timeout(8000)});
+      if (!r.ok) continue;
+      const d = await r.json();
+      // targetMean is the consensus average analyst price target
+      if (d && d.targetMean != null && d.targetMean > 0) return d.targetMean;
+    } catch(e) { continue; }
+  }
+  return null;
+}
+
 async function fetchAnalyst(stock) {
   // Try Finnhub first (most reliable, no CORS issues)
   const fh = await fetchFinnhub(stock.ticker);
@@ -766,14 +787,12 @@ async function fetchAnalyst(stock) {
     // D/E — exact field names confirmed from live Finnhub response
     const de = m['totalDebt/totalEquityAnnual'] ?? m['longTermDebt/equityAnnual'] ?? m['totalDebt/totalEquityQuarterly'] ?? m['longTermDebt/equityQuarterly'] ?? null;
     if (de != null) stock.debtEquity = de;
-    if (m.netProfitMarginAnnual != null) stock.profitMargin              = m.netProfitMarginAnnual;
-    if (m.currentRatioAnnual    != null) stock.currentRatio              = m.currentRatioAnnual;
-    if (m.targetPrice != null) stock.analystTarget = m.targetPrice;
-    // If targetPrice not in metric, try dedicated endpoint
-    if (!stock.analystTarget) {
-      const pt = await fetchFinnhubTarget(stock.ticker);
-      if (pt) stock.analystTarget = pt;
-    }
+    if (m.netProfitMarginAnnual != null) stock.profitMargin = m.netProfitMarginAnnual;
+    if (m.currentRatioAnnual    != null) stock.currentRatio = m.currentRatioAnnual;
+    // Always fetch price target from dedicated endpoint — more reliable than metric.targetPrice
+    const pt = await fetchFinnhubTarget(stock.ticker);
+    if (pt) stock.analystTarget = pt;
+    else if (m.targetPrice != null) stock.analystTarget = m.targetPrice;
     return;
   }
   // Fallback: Yahoo proxy
@@ -950,7 +969,8 @@ function render() {
     const supportVal=s.support?`<span class="cell-neutral">$${fmt(s.support)}</span>${distSupport!==null?' '+colorCell(distSupport,'+'+fmt(distSupport,1)+'%',5,15):''}`:null;
     const upsideCell=colorCell(upside,(upside!==null?(upside>=0?'+':'')+fmt(upside,1)+'%':'—'),5,0,true);
     const rsiCell=colorCell(s.rsi,s.rsi!==null?fmt(s.rsi,0):'—',30,50);
-    const lowCell=colorCell(dist52Low,dist52Low!==null?'+'+fmt(dist52Low,1)+'%':'—',10,25);
+    const lowPrice = s.week52Low ? `<span style="color:var(--muted);font-size:10px;font-family:var(--font-mono);display:block;margin-top:2px">low $${fmt(s.week52Low)}</span>` : '';
+    const lowCell = colorCell(dist52Low, dist52Low!==null?'+'+fmt(dist52Low,1)+'%':'—', 10, 25) + lowPrice;
 
     const dotColor=score>=4?'on-buy':score>=2?'on-warn':'on-sell';
     let dotsHtml='<div class="score-dots">';
@@ -1185,27 +1205,6 @@ async function addTicker(){
   saveStocks();render();
   await fetchPrice(s);await fetchAnalyst(s);
   saveStocks();render();updateSummary();updateAI();
-}
-
-async function fetchFinnhubTarget(ticker) {
-  const key = getFinnhubKey();
-  if (!key) return null;
-  // Finnhub has a dedicated price target endpoint
-  const baseUrl = `https://finnhub.io/api/v1/stock/price-target?symbol=${ticker}&token=${key}`;
-  const urls = [
-    baseUrl,
-    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`
-  ];
-  for (const url of urls) {
-    try {
-      const r = await fetch(url, {method:'GET', signal:AbortSignal.timeout(8000)});
-      if (!r.ok) continue;
-      const d = await r.json();
-      if (d && d.targetMean) return d.targetMean;
-    } catch(e) { continue; }
-  }
-  return null;
 }
 
 function saveFinnhubKey(val) {

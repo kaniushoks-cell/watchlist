@@ -186,6 +186,7 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
           style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:190px;"
           oninput="saveFinnhubKey(this.value)">
         <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap" title="Get free key — takes 30 seconds">get free ↗</a>
+        <button onclick="debugTarget()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:2px 7px;border-radius:4px;font-size:9px;font-family:var(--font-mono);cursor:pointer;">test target</button>
       </div>
       <button class="hbtn" onclick="exportData()">⬇ Export</button>
       <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -1205,6 +1206,22 @@ async function addTicker(){
   saveStocks();render();
   await fetchPrice(s);await fetchAnalyst(s);
   saveStocks();render();updateSummary();updateAI();
+}
+
+async function debugTarget() {
+  const key = getFinnhubKey();
+  if (!key) { alert('No Finnhub key set'); return; }
+  const baseUrl = `https://finnhub.io/api/v1/stock/price-target?symbol=JNJ&token=${key}`;
+  const urls = [baseUrl, `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`, `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
+      const text = await r.text();
+      alert('Price target response for JNJ:\n\n' + text.substring(0, 500));
+      return;
+    } catch(e) { continue; }
+  }
+  alert('All requests failed');
 }
 
 function saveFinnhubKey(val) {

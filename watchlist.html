@@ -181,12 +181,18 @@ td{padding:10px 11px;font-size:12px;vertical-align:middle}
     </div>
     <div class="header-actions">
       <div id="fh-key-wrap" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">
-        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap">Finnhub key:</span>
-        <input id="fh-key-input" type="password" placeholder="Paste free key → get P/E, D/E, Beta" autocomplete="off"
-          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:190px;"
+        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap">Finnhub:</span>
+        <input id="fh-key-input" type="password" placeholder="key → P/E Beta D/E" autocomplete="off"
+          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:120px;"
           oninput="saveFinnhubKey(this.value)">
-        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono);white-space:nowrap">get free ↗</a>
-        <button onclick="debugAnalyst()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:2px 7px;border-radius:4px;font-size:9px;font-family:var(--font-mono);cursor:pointer;">test analyst</button>
+        <a href="https://finnhub.io/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono)">get ↗</a>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">
+        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap">FMP:</span>
+        <input id="fmp-key-input" type="password" placeholder="key → analyst targets" autocomplete="off"
+          style="background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:11px;width:130px;"
+          oninput="saveFmpKey(this.value)">
+        <a href="https://site.financialmodelingprep.com/register" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--font-mono)">get ↗</a>
       </div>
       <button class="hbtn" onclick="exportData()">⬇ Export</button>
       <label class="hbtn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -760,20 +766,26 @@ async function fetchPrice(stock) {
   } catch(e) { stock.livePrice=null;stock.loading=false;stock.error=true; }
 }
 
+function getFmpKey() { return localStorage.getItem('fmp_key') || ''; }
+
 async function fetchAnalystTarget(ticker) {
-  // Yahoo Finance v10 quoteSummary financialData has targetMeanPrice — free and accessible
+  const key = getFmpKey();
+  if (!key) return null;
+  // FMP price target consensus — free tier, CORS enabled
+  const baseUrl = `https://financialmodelingprep.com/stable/price-target-consensus?symbol=${ticker}&apikey=${key}`;
   const urls = [
-    `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ticker+'?modules=financialData')}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ticker+'?modules=financialData')}`,
-    `https://corsproxy.io/?${encodeURIComponent('https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+ticker+'?modules=financialData')}`,
+    baseUrl,
+    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`
   ];
   for (const url of urls) {
     try {
       const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
       if (!r.ok) continue;
       const d = await r.json();
-      const target = d?.quoteSummary?.result?.[0]?.financialData?.targetMeanPrice?.raw;
-      if (target && target > 0) return target;
+      // FMP returns array or object — handle both
+      const item = Array.isArray(d) ? d[0] : d;
+      if (item && item.targetConsensus != null && item.targetConsensus > 0) return item.targetConsensus;
+      if (item && item.targetMean != null && item.targetMean > 0) return item.targetMean;
     } catch(e) { continue; }
   }
   return null;
@@ -832,7 +844,8 @@ async function refreshAll() {
   btn.classList.remove('spinning');
   const errCount=stocks.filter(s=>s.error).length;
   if(errCount>0)document.getElementById('errNote').textContent=errCount+' ticker(s) unavailable. Yahoo Finance may be rate-limiting — try again in a minute.';
-  if(!getFinnhubKey()) document.getElementById('errNote').textContent = (document.getElementById('errNote').textContent ? ' | ' : '') + '⚠ P/E, D/E, Beta & Margin columns need a free Finnhub API key — paste it in the box top-right. Get one free at finnhub.io/register (30 seconds).';
+  if(!getFinnhubKey()) document.getElementById('errNote').textContent += ' ⚠ Finnhub key needed for P/E, D/E, Beta — free at finnhub.io/register';
+  if(!getFmpKey()) document.getElementById('errNote').textContent += ' | ⚠ FMP key needed for Analyst Targets — free at financialmodelingprep.com/register';
   document.getElementById('last-update').textContent='Last updated: '+new Date().toLocaleTimeString();
 }
 
@@ -1216,28 +1229,17 @@ async function addTicker(){
   saveStocks();render();updateSummary();updateAI();
 }
 
-async function debugAnalyst() {
-  const urls = [
-    `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/JNJ?modules=financialData')}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/JNJ?modules=financialData')}`
-  ];
-  for (const url of urls) {
-    try {
-      const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
-      const text = await r.text();
-      alert('Yahoo financialData for JNJ:\n\n' + text.substring(0, 600));
-      return;
-    } catch(e) { continue; }
-  }
-  alert('All requests failed');
-}
-
 function toggleAI() {
   const body = document.getElementById('ai-collapsible');
   const btn = document.getElementById('ai-toggle');
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
   btn.textContent = isOpen ? '+' : '−';
+}
+
+function saveFmpKey(val) {
+  if (val) localStorage.setItem('fmp_key', val);
+  else localStorage.removeItem('fmp_key');
 }
 
 function saveFinnhubKey(val) {
@@ -1253,6 +1255,8 @@ loadStocks();
 if(localStorage.getItem(BANNER_KEY))document.getElementById('banner').style.display='none';
 const savedKey = getFinnhubKey();
 if (savedKey) document.getElementById('fh-key-input').value = savedKey;
+const savedFmpKey = getFmpKey();
+if (savedFmpKey) document.getElementById('fmp-key-input').value = savedFmpKey;
 render();updateSummary();
 </script>
 </body>

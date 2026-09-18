@@ -753,6 +753,8 @@ async function fetchPrice(stock){
     var meta=d.chart.result[0].meta;
     var closes=(d.chart.result[0].indicators.quote[0].close||[]).filter(function(v){return v!=null&&!isNaN(v);});
     stock.price=meta.regularMarketPrice||closes[closes.length-1];
+    if(meta.dividendYield!=null)stock.divYield=meta.dividendYield*100;
+    else if(meta.trailingAnnualDividendYield!=null)stock.divYield=meta.trailingAnnualDividendYield*100;
     stock.hist=closes;
     // Strategy 1 (stable utilities/staples) = 2-year EWA (104 weekly closes)
     // Strategy 2 (event-sensitive healthcare/industrials) = 52-week EWA (last 52 weeks only)
